@@ -1,0 +1,15 @@
+{% extends "uploads/base.html" %}
+
+{% block title %}Process Income Data{% endblock %}
+
+{% block content %}
+<h1>Process Income Data</h1>
+<p>Click the button below to start processing the latest income data.</p>
+
+<form action="{% url 'process-income' %}" method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-primary btn-lg">
+        <i class="fas fa-cogs"></i> Start Processing
+    </button>
+</form>
+{% endblock %}

@@ -1,0 +1,113 @@
+{% extends "uploads/base.html" %}
+{% load static %}
+{% load custom_filters %}
+
+{% block extra_css %}
+<style>
+    .upload-section {
+        background-color: #f8f9fa;
+        border-radius: 15px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .upload-title {
+        border-bottom: 2px solid #007bff;
+    }
+    .card-hover:hover {
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        transition: box-shadow 0.3s ease-in-out;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    {% if request.user.is_authenticated %}
+    <div class="row">
+        <!-- Income Uploads Section -->
+        <div class="col-lg-4">
+            <div class="upload-section p-4 mb-4">
+                <h4 class="upload-title pb-2 mb-4">
+                     수입수수료 업로드
+                </h4>
+                {% for income_type, form in income_forms.items %}
+                <div class="card mb-3 card-hover">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="card-title mb-0">{{ income_type_translations|get_item:income_type|default:income_type }}</h5>
+                            <a href="{% url 'download_sample' sample_type='income' upload_type=income_type|lower %}" class="btn btn-outline-info btn-sm">
+                                <i class="bi bi-download"></i> 샘플
+                            </a>
+                        </div>
+                        <form method="post" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            {{ form.as_p }}
+                            <input type="hidden" name="form_type" value="income_{{ income_type }}">
+                            <button type="submit" class="btn btn-success btn-block">
+                                <i class="bi bi-cloud-arrow-up-fill"></i> 업로드
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+                <div class="text-center mt-4">
+                    <a href="{% url 'process-income' %}" class="btn btn-outline-primary btn-lg">
+                        <i class="bi bi-gear-fill"></i> 수입수수료 프로세스
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Expense Uploads Section -->
+        <div class="col-lg-8">
+            <div class="upload-section p-4 mb-4">
+                <h4 class="upload-title pb-2 mb-4">
+                    지급수수료 업로드
+                </h4>
+                <div class="row">
+                    {% for expense_type, form in expense_forms.items %}
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100 card-hover">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h5 class="card-title mb-0">{{ expense_type_translations|get_item:expense_type|default:expense_type }}</h5>
+                                    <a href="{% url 'download_sample' sample_type='expense' upload_type=expense_type|lower %}" class="btn btn-outline-info btn-sm">
+                                        <i class="bi bi-download"></i> 샘플
+                                    </a>
+                                </div>
+                                <form method="post" enctype="multipart/form-data">
+                                    {% csrf_token %}
+                                    {{ form.as_p }}
+                                    <input type="hidden" name="form_type" value="expense_{{ expense_type }}">
+                                    <button type="submit" class="btn btn-success btn-block">
+                                        <i class="bi bi-cloud-arrow-up-fill"></i> 업로드
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="text-center mt-2">
+                    <a href="{% url 'process-expense' %}" class="btn btn-outline-primary btn-lg">
+                        <i class="bi bi-gear-fill"></i> 지급수수료 프로세스
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card mt-5">
+                <div class="card-body text-center">
+                    <h4 class="mb-3">Please log in to access the upload page</h4>
+                    <a href="{% url 'login' %}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-sign-in-alt mr-1"></i>Login
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

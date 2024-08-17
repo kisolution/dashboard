@@ -1,0 +1,82 @@
+{% extends "uploads/base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+    .data-table-container {
+        max-height: 600px;
+        overflow: auto;
+    }
+    .data-table {
+        width: 100%;
+    }
+    .data-table thead th {
+        position: sticky;
+        top: 0;
+        background-color: #f8f9fa;
+        z-index: 1000;
+        white-space: nowrap;
+        height: 150px;
+        vertical-align: bottom;
+        text-align: left;
+        padding-left: 5px;
+        padding-right: 5px;
+    }
+    .data-table th .vertical-text {
+        transform: rotate(-90deg);
+        width: 30px;
+        white-space: nowrap;
+    }
+    .data-table td {
+        white-space: nowrap;
+        padding: 0.5rem;
+        border: 1px solid #dee2e6;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <h1 class="mb-4">수입수수료</h1>
+    {% if final_df %}
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">처리된 데이터</h5>
+            <a href="{% url 'process-expense' %}?download=true" class="btn btn-primary">
+                <i class="fas fa-download mr-1"></i> 다운로드
+            </a>
+        </div>
+        <div class="card-body p-0">
+            <div class="data-table-container">
+                <table class="table table-striped table-bordered data-table">
+                    {{ final_df|safe }}
+                </table>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="card">
+        <div class="card-body">
+            <h4 class="card-title">데이터가 없습니다</h4>
+            <p class="card-text">먼저 홈페이지에서 데이터를 업로드하고 처리해야 합니다.</p>
+            <a href="{% url 'home' %}" class="btn btn-primary">
+                <i class="fas fa-home mr-1"></i> 홈으로 가기
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var table = document.querySelector('.data-table');
+    if (table) {
+        var headers = table.querySelectorAll('th');
+        headers.forEach(function(header) {
+            var text = header.textContent.trim();
+            header.innerHTML = '<div class="vertical-text">' + text + '</div>';
+        });
+    }
+});
+</script>
+{% endblock %}

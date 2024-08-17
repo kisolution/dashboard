@@ -1,0 +1,22 @@
+<h2 class="upload-title">Income Uploads</h2>
+{% for income_type, form in income_forms.items %}
+<div class="card upload-card mb-3">
+    <div class="card-body">
+        <div class="container-fluid d-flex justify-content-between align-items-center">
+            <h5 class="card-title">{{ income_type_translations|get_item:income_type|default:income_type }} Income</h5>
+            <a href="{% url 'download_sample' sample_type='income' upload_type=income_type|lower %}" class="btn btn-sample btn-sm">Sample</a>
+        </div>
+        
+        <form method="post" enctype="multipart/form-data" class="mb-2">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <input type="hidden" name="form_type" value="income_{{ income_type }}">
+            <button type="submit" class="btn btn-upload">Upload</button>
+        </form>
+        
+    </div>
+</div>
+{% endfor %}
+<div class="text-center mt-4">
+    <a href="{% url 'process-income' %}" class="btn btn-primary btn-lg">Process Income Data</a>
+</div>
