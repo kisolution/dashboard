@@ -1,78 +1,181 @@
 {% extends "uploads/base.html" %}
 {% load static %}
+{% load humanize %}
 
 {% block extra_css %}
 <style>
-    .data-table-container {
-        max-height: 600px;
-        overflow: auto;
+    .number-cell {
+        text-align: right;
+        font-weight: bold;
+        color: #007bff;
     }
-    .data-table {
-        width: 100%;
-    }
-    .data-table thead th {
-        position: sticky;
-        top: 0;
-        background-color: #f8f9fa;
-        z-index: 1000;
-        white-space: nowrap;
-        height: 150px;
-        vertical-align: bottom;
-        text-align: left;
-        padding-left: 5px;
-        padding-right: 5px;
-    }
-    .data-table th .vertical-text {
-        transform: rotate(-90deg);
-        width: 30px;
-        white-space: nowrap;
-    }
-    .data-table td {
-        white-space: nowrap;
-        padding: 0.5rem;
-        border: 1px solid #dee2e6;
+    .report-value {
+        font-weight: bold;
+        color: #007bff;
     }
 </style>
 {% endblock %}
 
 {% block content %}
 {% if request.user.is_authenticated %}
-<div class="container-fluid mt-4">
-    
-    {% if final_df %}
-    <div class="card">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">지급수수료 - 처리된 데이터</h5>
-            <a href="{% url 'process-expense' %}?download=true" class="btn btn-primary">
-                <i class="fas fa-download mr-1"></i> 다운로드
-            </a>
+<div class="container mt-4">
+    <div class="card mb-4">
+        <div class="card-header bg-secondary text-white">
+            <h2 class="card-title text-center mb-0">지급수수료 - 보고서</h2>
         </div>
-        <div class="card-body p-0">
-            <div class="data-table-container">
-                <table class="table table-striped table-bordered data-table">
-                    {{ final_df|safe }}
-                </table>
+        
+        <div class="card-body">
+            <div class="row mb-3 align-items-center">
+                <div class="col-md-7">
+                    <form method="get" action="{% url 'display_expense' %}" class="form-inline">
+                        <div class="input-group w-100">
+                            <select name="company" class="form-control">
+                                <option value="">모두 보험사</option>
+                                {% for company in company_names %}
+                                    <option value="{{ company }}" {% if company == selected_company %}selected{% endif %}>
+                                        {{ company }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            <div class="input-group-append">
+                                <button type="submit" class="btn btn-outline-success"><i class="bi bi-filter-square-fill"></i> 필터</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="col-md-5 d-flex justify-content-end">
+                    <div>
+                        <a href="{% url 'display_expense' %}?company={{ selected_company }}&download=true" class="btn btn-outline-primary mr-2">
+                            <i class="bi bi-file-earmark-excel"></i></i> 전체 데이터 다운로드
+                        </a>
+                        <a href="#" id="download-report" class="btn btn-outline-info">
+                            <i class="fas fa-file-image mr-1"></i> 보고서 이미지 다운로드
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            {% if report_data %}
+            <div class="card mb-4">
+                {% if not selected_company %}
+                <div class="card-header">
+                    <h5 class="mb-0">전체</h5>
+                </div>
+                {% else %}
+                <div class="card-header">
+                    <h5 class="mb-0">{{ selected_company }}</h5>
+                </div>
+                {% endif %}
+                <div class="card-body">
+                    <table class="table table-bordered">
+                        <tr>
+                            <th colspan="2">1. 정액상각대상 FC지급수수료 자산인식</th>
+                            <th colspan="2"></th>
+                        </tr>
+                        <tr>
+                            <td>(차) 선급비용(수당)_IFRS15결산</td>
+                            <td class="number-cell">{{ report_data.c5|floatformat:0|intcomma }}</td>
+                            <td>(대) 판매수수료(수당)_IFRS15결산</td>
+                            <td class="number-cell">{{ report_data.c8|floatformat:0|intcomma }}</td>
+                        </tr>
+                        <tr>
+                            <th colspan="2">2. 정액상각대상 수수료 정액상각처리</th>
+                            <th colspan="2"></th>
+                        </tr>
+                        <tr>
+                            <td>(차) 판매수수료(수당)_IFRS15결산</td>
+                            <td class="number-cell">{{ report_data.e5|floatformat:0|intcomma }}</td>
+                            <td>(대) 선급비용(수당)_IFRS15결산</td>
+                            <td class="number-cell">{{ report_data.e8|floatformat:0|intcomma }}</td>
+                        </tr>
+                        <tr>
+                            <th colspan="2">3. 정액상각대상 수수료 환수자산조정</th>
+                            <th colspan="2"></th>
+                        </tr>
+                        <tr>
+                            <td>(차) 환수자산(수당)_IFRS15결산</td>
+                            <td class="number-cell">{{ report_data.c11|floatformat:0|intcomma }}</td>
+                            <td>(대) 환수자산비용조정(수당)_IFRS15결산</td>
+                            <td class="number-cell">{{ report_data.e11|floatformat:0|intcomma }}</td>
+                        </tr>
+                        <tr>
+                            <th colspan="2">4. 기타조정</th>
+                            <th colspan="2"></th>
+                        </tr>
+                        <tr>
+                            <td>(차) 선급비용(수당)_IFRS15결산</td>
+                            <td class="number-cell">{{ report_data.c14|floatformat:0|intcomma }}</td>
+                            <td>(대) 판매수수료(수당)_IFRS15결산</td>
+                            <td class="number-cell">{{ report_data.e14|floatformat:0|intcomma }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">검증</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-2">
+                        <div class="col-md-6">전월말 선급비용잔액</div>
+                        <div class="col-md-6 text-right report-value">{{ report_data.c18|floatformat:0|intcomma }}</div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">전월말 환수자산잔액</div>
+                        <div class="col-md-6 text-right report-value">{{ report_data.c19|floatformat:0|intcomma }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <table class="table table-bordered">
+                        <tr>
+                            <th></th>
+                            <th>장부상잔액</th>
+                            <th>계산명세서상잔액</th>
+                            <th>차이</th>
+                        </tr>
+                        <tr>
+                            <td>당월말 선급비용잔액</td>
+                            <td class="number-cell">{{ report_data.d23|floatformat:0|intcomma }}</td>
+                            <td class="number-cell">{{ report_data.e23|floatformat:0|intcomma }}</td>
+                            <td class="number-cell">{{ report_data.f23|floatformat:0|intcomma }}</td>
+                        </tr>
+                        <tr>
+                            <td>당월말 환수자산잔액</td>
+                            <td class="number-cell">{{ report_data.d24|floatformat:0|intcomma }}</td>
+                            <td class="number-cell">{{ report_data.e24|floatformat:0|intcomma }}</td>
+                            <td class="number-cell">{{ report_data.f24|floatformat:0|intcomma }}</td>
+                        </tr>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
-    {% else %}
-    <div class="card">
-        <div class="card-body">
-            <h4 class="card-title">데이터가 없습니다</h4>
-            <p class="card-text">먼저 홈페이지에서 데이터를 업로드하고 처리해야 합니다.</p>
-            <a href="{% url 'home' %}" class="btn btn-primary">
-                <i class="fas fa-home mr-1"></i> 홈으로 가기
-            </a>
-        </div>
-    </div>
-    {% endif %}
 </div>
+
+<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+<script>
+document.getElementById('download-report').addEventListener('click', function(e) {
+    e.preventDefault();
+    html2canvas(document.querySelector('.container')).then(canvas => {
+        let link = document.createElement('a');
+        link.download = 'expense_report.png';
+        link.href = canvas.toDataURL();
+        link.click();
+    });
+});
+</script>
+
 {% else %}
 <div class="row justify-content-center">
     <div class="col-md-6">
         <div class="card mt-5">
             <div class="card-body text-center">
-                <h4 class="mb-3">Please log in to access the upload page</h4>
+                <h4 class="mb-3">Please log in to access the report</h4>
                 <a href="{% url 'login' %}" class="btn btn-primary btn-lg">
                     <i class="fas fa-sign-in-alt mr-1"></i>Login
                 </a>
@@ -81,17 +184,4 @@
     </div>
 </div>
 {% endif %}
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    var table = document.querySelector('.data-table');
-    if (table) {
-        var headers = table.querySelectorAll('th');
-        headers.forEach(function(header) {
-            var text = header.textContent.trim();
-            header.innerHTML = '<div class="vertical-text">' + text + '</div>';
-        });
-    }
-});
-</script>
 {% endblock %}

@@ -2,7 +2,7 @@ import pandas as pd
 
 def sample_data(sample_name):
     # Define sample data based on the requested sample
-    if sample_name == 'income_prev_month':
+    if sample_name == 'inc_prev_month':
         data = {
             "보험사+업적월+상품군 key": ["이관계약", "보험사명/202307", "보험사명/202307", "보험사명/202307"],
             "마감월": ["-", 202406, 202406, 202406],
@@ -34,7 +34,7 @@ def sample_data(sample_name):
             "당기환수수익조정": ["-", -3938262, -1465, -5979797],
             "기말환수부채": ["-", 26140990, 95256, 7149948]
         }
-    elif sample_name == 'income_data_case':
+    elif sample_name == 'inc_data_case':
         data = {
             "마감월": ["202406", "202406", "202406"],
             "보험사": ["보험사명", "보험사명", "보험사명"],
@@ -70,20 +70,20 @@ def sample_data(sample_name):
             "모집인 소속경로_사업단": ["", "", ""],
             "모집인 소속경로_지점/팀": ["", "", ""]
         }
-    elif sample_name == 'income_main':
+    elif sample_name == 'inc_main':
         data = {
             "보험사+업적월+상품군 key": ["보험사명/202307", "보험사명/202307", "보험사명/202307"],
             "마감월": [202406, 202406, 202406],
             "보험사": ["보험사명", "보험사명", "보험사명"]
         }
 
-    elif sample_name == 'expense_main':
+    elif sample_name == 'exp_main':
         data = {
             "보험사+업적월+상품군 key": ["이관계약", "DB손보/202307", "DB손보/202308", "DB손보/202309"],
             "마감월": [None, 202406, 202406, 202406],  # Assuming 'None' where data is not provided
             "보험사": [None, "DB손보", "DB손보", "DB손보"]  # Assuming 'None' where data is not provided
             }
-    elif sample_name == 'expense_security':
+    elif sample_name == 'exp_security':
             data = {
             "마감월": [202406, 202406, 202406],
             "지급사원번호": ["0020000001", "0020000001", "0020000001"],
@@ -138,7 +138,7 @@ def sample_data(sample_name):
         }
         
         
-    elif sample_name == 'expense_override':
+    elif sample_name == 'exp_override':
         data = {
             "마감월": [202406, 202406, 202406],
             "[오버라이드] 종류": ["사업단", "지점/팀", "사업단"],
@@ -184,7 +184,7 @@ def sample_data(sample_name):
             "본인/가족계약": ["N", "N", "N"],
             "데이터형태": ["시스템", "시스템", "시스템"]
         }
-    elif sample_name == 'expense_retirement':
+    elif sample_name == 'exp_retirement':
          data = {
             "마감월": [202406, 202406, 202406],
             "지급사원번호": [1020230239, 1020230239, 1020231042],
@@ -228,7 +228,7 @@ def sample_data(sample_name):
             "사업단": ["을지로사업단", "을지로사업단", "괴산사업단"],
             "지점/팀": ["을지로[00]지점", "을지로[00]지점", "괴산[01]지점"]
         }
-    elif sample_name == 'expense_prev_month':
+    elif sample_name == 'exp_prev_month':
          data = {
             "보험사+업적월+상품군 key": ["이관계약", "DB손보/202307", "DB손보/202308"],
             "마감월": [None, 202405, 202405],

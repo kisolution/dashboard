@@ -34,7 +34,7 @@
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <h5 class="card-title mb-0">{{ income_type_translations|get_item:income_type|default:income_type }}</h5>
-                            <a href="{% url 'download_sample' sample_type='income' upload_type=income_type|lower %}" class="btn btn-outline-info btn-sm">
+                            <a href="{% url 'download_sample' upload_type=income_type|lower %}" class="btn btn-outline-info btn-sm">
                                 <i class="bi bi-download"></i> 샘플
                             </a>
                         </div>
@@ -70,7 +70,7 @@
                             <div class="card-body">
                                 <div class="d-flex justify-content-between align-items-center mb-3">
                                     <h5 class="card-title mb-0">{{ expense_type_translations|get_item:expense_type|default:expense_type }}</h5>
-                                    <a href="{% url 'download_sample' sample_type='expense' upload_type=expense_type|lower %}" class="btn btn-outline-info btn-sm">
+                                    <a href="{% url 'download_sample' upload_type=expense_type|lower %}" class="btn btn-outline-info btn-sm">
                                         <i class="bi bi-download"></i> 샘플
                                     </a>
                                 </div>

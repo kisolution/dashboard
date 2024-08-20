@@ -3,6 +3,13 @@ from django.utils import timezone
 from django.contrib.auth.models import User
 from storages.backends.s3boto3 import S3Boto3Storage
 import os
+import re
+
+def clean_filename(filename):
+    # Remove special characters and spaces, replace with underscores
+    cleaned_name = re.sub(r'[^\w\-_\. ]', '', filename)
+    cleaned_name = re.sub(r'[\s]+', '_', cleaned_name)
+    return cleaned_name
 
 class S3Storage(S3Boto3Storage):
     location = 'uploads'
@@ -25,12 +32,13 @@ class IncomeUpload(models.Model):
             # Get the original filename and extension
             original_filename = self.file_upload.name
             filename, file_extension = os.path.splitext(original_filename)
+            cleaned_filename = clean_filename(filename)
             
             # Generate timestamp
             timestamp = timezone.now().strftime("%Y%m%d_%H%M%S")
             
             # Create new filename with timestamp
-            new_filename = f"{filename}_{timestamp}{file_extension}"
+            new_filename = f"{cleaned_filename}_{timestamp}{file_extension}"
             
             # Update the filename and S3 key
             self.filename = new_filename
@@ -67,12 +75,12 @@ class ExpenseUpload(models.Model):
             # Get the original filename and extension
             original_filename = self.file_upload.name
             filename, file_extension = os.path.splitext(original_filename)
-            
+            cleaned_filename = clean_filename(filename)
             # Generate timestamp
             timestamp = timezone.now().strftime("%Y%m%d_%H%M%S")
             
             # Create new filename with timestamp
-            new_filename = f"{filename}_{timestamp}{file_extension}"
+            new_filename = f"{cleaned_filename}_{timestamp}{file_extension}"
             
             # Update the filename and S3 key
             self.filename = new_filename

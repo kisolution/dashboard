@@ -55,7 +55,7 @@ logger = logging.getLogger(__name__)
 
 def get_file_from_s3(s3_key):
     if not s3_key:
-        logger.error("Empty S3 key provided")
+        logger.error("Empty S3 key provided") 
         return None
 
     s3 = boto3.client(

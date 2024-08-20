@@ -1,0 +1,150 @@
+{% extends "uploads/base.html" %}
+{% load static %}
+{% load custom_filters %}
+
+{% block extra_css %}
+<style>
+    .card-hover:hover {
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        transition: box-shadow 0.3s ease-in-out;
+    }
+    .upload-date {
+        font-size: 0.8rem;
+        color: #6c757d;
+    }
+    .scrollable-card-body {
+        max-height: 600px;  /* Adjust this value as needed */
+        overflow-y: auto;
+    }
+    .card-body-content {
+        padding-right: 10px;  /* Add some padding for the scrollbar */
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    {% if request.user.is_authenticated %}
+    <div class="card-header bg-light mb-4"><h3 class="text-center">기록 데이터</h3></div>
+    
+    <div class="row">
+        <!-- Income Uploads Section -->
+        <div class="col-lg-6">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">수입수수료 데이터</h5>
+                </div>
+                <div class="card-body scrollable-card-body">
+                    <div class="card-body-content">
+                        {% for data in income_datas|slice:":7" %}
+                        <div class="card mb-3 card-hover">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="card-title mb-1">{{ data.filename|truncatechars:60 }}</h6>
+                                        <p class="upload-date mb-0">프로세스 날짜: {{ data.upload_date|date:"F d, Y H:i" }}</p>
+                                    </div>
+                                    {% if data.s3_key %}
+                                    <a href="{% url 'download-history' s3_key=data.s3_key|lower %}" class="btn btn-outline-primary btn-sm">
+                                        <i class="bi bi-download"></i> 다운로드
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                        {% if income_datas|length > 7 %}
+                            {% for data in income_datas|slice:"7:" %}
+                            <div class="card mb-3 card-hover">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="card-title mb-1">{{ data.filename|truncatechars:60 }}</h6>
+                                            <p class="upload-date mb-0">프로세스 날짜: {{ data.upload_date|date:"F d, Y H:i" }}</p>
+                                        </div>
+                                        {% if data.s3_key %}
+                                        <a href="{% url 'download-history' s3_key=data.s3_key|lower %}" class="btn btn-outline-primary btn-sm">
+                                            <i class="bi bi-download"></i> 다운로드
+                                        </a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% endif %}
+                        {% if not income_datas %}
+                        <p class="text-muted">No income uploads available.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Expense Uploads Section -->
+        <div class="col-lg-6">
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">지급수수료 데이터</h5>
+                </div>
+                <div class="card-body scrollable-card-body">
+                    <div class="card-body-content">
+                        {% for data in expense_datas|slice:":7" %}
+                        <div class="card mb-3 card-hover">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="card-title mb-1">{{ data.filename|truncatechars:60 }}</h6>
+                                        <p class="upload-date mb-0">프로세스 날짜: {{ data.upload_date|date:"F d, Y H:i" }}</p>
+                                    </div>
+                                    {% if data.s3_key %}
+                                    <a href="{% url 'download-history' s3_key=data.s3_key|lower %}" class="btn btn-outline-success btn-sm">
+                                        <i class="bi bi-download"></i> 다운로드
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                        {% if expense_datas|length > 7 %}
+                            {% for data in expense_datas|slice:"7:" %}
+                            <div class="card mb-3 card-hover">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="card-title mb-1">{{ data.filename|truncatechars:60 }}</h6>
+                                            <p class="upload-date mb-0">프로세스 날짜: {{ data.upload_date|date:"F d, Y H:i" }}</p>
+                                        </div>
+                                        {% if data.s3_key %}
+                                        <a href="{% url 'download-history' s3_key=data.s3_key|lower %}" class="btn btn-outline-success btn-sm">
+                                            <i class="bi bi-download"></i> 다운로드
+                                        </a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% endif %}
+                        {% if not expense_datas %}
+                        <p class="text-muted">No expense uploads available.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card mt-5">
+                <div class="card-body text-center">
+                    <h4 class="mb-3">기록 데이터에 액세스하려면 로그인하세요</h4>
+                    <a href="{% url 'login' %}" class="btn btn-primary btn-lg">
+                        <i class="bi bi-box-arrow-in-right me-2"></i>Login
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,15 +1,60 @@
 {% extends "uploads/base.html" %}
 
-{% block title %}Process Income Data{% endblock %}
+{% block extra_css %}
+<style>
+    .process-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 80vh;
+    }
+    .process-card {
+        background-color: #f8f9fa;
+        border-radius: 15px;
+        padding: 30px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        max-width: 400px;
+        width: 100%;
+    }
+    .process-title {
+        color: #343a40;
+        margin-bottom: 20px;
+    }
+    .process-description {
+        color: #6c757d;
+        margin-bottom: 30px;
+    }
+    .btn-process {
+        width: 100%;
+        padding: 10px 0;
+        font-size: 18px;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<h1>Process Income Data</h1>
-<p>Click the button below to start processing the latest income data.</p>
-
-<form action="{% url 'process-income' %}" method="post">
-    {% csrf_token %}
-    <button type="submit" class="btn btn-primary btn-lg">
-        <i class="fas fa-cogs"></i> Start Processing
-    </button>
-</form>
+<div class="process-container">
+    <div class="process-card">
+        {% if process_type == 'expense' %}
+            <h2 class="process-title">지급수수료 데이터 처리</h2>
+            <p class="process-description">아래 버튼을 클릭하여 최신 지급수수료 데이터 처리를 시작하세요.</p>
+            <form action="{% url 'process-expense' %}" method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-primary btn-lg btn-process">
+                    <i class="fas fa-cogs mr-2"></i> 처리 시작
+                </button>
+            </form>
+        {% elif process_type == 'income' %}
+            <h2 class="process-title">수입수수료 데이터 처리</h2>
+            <p class="process-description">아래 버튼을 클릭하여 최신 수입수수료 데이터 처리를 시작하세요.</p>
+            <form action="{% url 'process-income' %}" method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-primary btn-lg btn-process">
+                    <i class="fas fa-cogs mr-2"></i> 처리 시작
+                </button>
+            </form>
+        {% endif %}
+    </div>
+</div>
 {% endblock %}

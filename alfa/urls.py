@@ -7,4 +7,5 @@ urlpatterns = [
     path('accounts/', include('users.urls')),  # This should come before django.contrib.auth.urls
     path('accounts/', include('django.contrib.auth.urls')),
     path('processes/', include('processes.urls')),
+    path('leasing/', include('leasing.urls')),
 ]

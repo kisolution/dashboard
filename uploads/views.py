@@ -4,6 +4,9 @@ from .models import IncomeUpload, ExpenseUpload
 from functions.sample_datas import sample_data
 from django.http import HttpResponse
 import pandas as pd
+import re
+
+
 def home_upload_view(request):
     income_types = dict(IncomeUpload.INCOME_TYPES)
     expense_types = dict(ExpenseUpload.EXPENSE_TYPES)
@@ -53,10 +56,10 @@ def home_upload_view(request):
         'expense_type_translations':expense_type_translations
     }
     return render(request, 'uploads/home_upload.html', context)
-def download_sample(request, sample_type, upload_type):
-    sample_type = sample_type.lower()
+def download_sample(request, upload_type):
+    
     upload_type = upload_type.lower()
-    sample_name = f"{sample_type}_{upload_type}"
+    sample_name = f"{upload_type}"
 
     try:
         df = sample_data(sample_name)

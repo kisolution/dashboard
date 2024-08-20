@@ -98,7 +98,7 @@ class IncomeProcessor:
         
         value_dict = add_df.groupby('_temp_key')[value_column].sum().to_dict()
         self.main_data[new_column_name] = self.main_data['_temp_key'].map(value_dict)
-        self.main_data[new_column_name] = self.main_data[new_column_name].fillna(0)
+        self.main_data[new_column_name] = self.main_data[new_column_name].fillna(0).infer_objects(copy=False)
     
         alfa = self.main_data[new_column_name]
         

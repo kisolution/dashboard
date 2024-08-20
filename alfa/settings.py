@@ -20,8 +20,11 @@ INSTALLED_APPS = [
     'users',
     'uploads',
     'processes',
+    'leasing',
+
     'django_q',
     'widget_tweaks',
+    'django.contrib.humanize'
 ]
 
 MIDDLEWARE = [
