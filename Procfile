@@ -1,1 +1,1 @@
-web: gunicorn alfa.wsgi --log-file -
+web: gunicorn alfa.wsgi --timeout 120 --log-file -
