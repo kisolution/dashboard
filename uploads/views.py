@@ -5,8 +5,7 @@ from functions.sample_datas import sample_data
 from django.http import HttpResponse
 import pandas as pd
 from django.contrib import messages
-
-
+from utils.s3_utils import invalidate_cache
 def home_upload_view(request):
     income_types = dict(IncomeUpload.INCOME_TYPES)
     expense_types = dict(ExpenseUpload.EXPENSE_TYPES) 
@@ -34,11 +33,14 @@ def home_upload_view(request):
             if form.is_valid():
                 upload = form.save(commit=False)
                 
-                # Check uploaded data
                 if check_uploaded_data(request, income_type, form.cleaned_data['file_upload']):
                     upload.user = request.user
                     upload.income_type = income_type
                     upload.save()
+                    
+                    # Invalidate cache for this income type
+                    invalidate_cache(request.user.id, income_type)
+                    
                     messages.success(request, f'{income_type_translations.get(income_type, income_type)} uploaded successfully.')
                     return redirect('home')
                 else:
@@ -53,11 +55,14 @@ def home_upload_view(request):
             if form.is_valid():
                 upload = form.save(commit=False)
                 
-                # Check uploaded data
                 if check_uploaded_data(request, expense_type, form.cleaned_data['file_upload']):
                     upload.user = request.user
                     upload.expense_type = expense_type
                     upload.save()
+                    
+                    # Invalidate cache for this expense type
+                    invalidate_cache(request.user.id, expense_type)
+                    
                     messages.success(request, f'{expense_type_translations.get(expense_type, expense_type)} uploaded successfully.')
                     return redirect('home')
                 else:
@@ -73,7 +78,6 @@ def home_upload_view(request):
         'expense_type_translations': expense_type_translations
     }
     return render(request, 'uploads/home_upload.html', context)
-
 def download_sample(request, upload_type):
     upload_type = upload_type.lower()
     sample_name = f"{upload_type}"

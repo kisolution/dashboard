@@ -21,8 +21,6 @@ INSTALLED_APPS = [
     'uploads',
     'processes',
     'leasing',
-
-    'django_q',
     'widget_tweaks',
     'django.contrib.humanize'
 ]
@@ -137,15 +135,7 @@ AUTHENTICATION_BACKENDS = [
 LOGIN_REDIRECT_URL = 'home'  # Replace 'home' with your home page URL name
 LOGOUT_REDIRECT_URL = 'home'
 LOGOUT_REDIRECT_URL = 'home'  # or any other URL you want to redirect to after logout
-Q_CLUSTER = {
-    'name': 'DjangORM',
-    'workers': 4,
-    'timeout': 90,
-    'retry': 120,
-    'queue_limit': 50,
-    'bulk': 10,
-    'orm': 'default',
-}
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -166,3 +156,4 @@ LOGGING = {
         },
     },
 }
+

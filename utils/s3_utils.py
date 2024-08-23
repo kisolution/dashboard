@@ -10,6 +10,7 @@ from io import BytesIO
 from django.core.cache import cache
 import logging
 from botocore.exceptions import ClientError
+import pickle
 s3_storage = S3Boto3Storage()
 
 file_paths = {
@@ -29,19 +30,32 @@ def get_s3_client():
         #region_name=settings.AWS_S3_REGION_NAME
     )
 
-#@cache.cache_page(60 * 60)  # Cache for 1 hour
+
 def load_static_data():
     s3 = get_s3_client()
-    print("Loading static data...")
+    logger.info("Loading static data from S3...")
     static_data = {}
     for key, path in file_paths.items():
         obj = s3.get_object(Bucket=settings.AWS_STORAGE_BUCKET_NAME, Key=path)
         static_data[key] = pd.read_excel(io.BytesIO(obj['Body'].read()))
-    print("Static data loaded successfully")
+    logger.info("Static data loaded successfully")
     return static_data
 
 def get_static_data():
-    return load_static_data()
+    cache_key = "all_static_data"
+    cached_data = cache.get(cache_key)
+    
+    if cached_data is not None:
+        logger.info("Retrieved static data from cache")
+        return pickle.loads(cached_data)
+    
+    logger.info("Cache miss for static data, loading from S3")
+    static_data = load_static_data()
+    
+    # Cache the static_data for 30 days
+    cache.set(cache_key, pickle.dumps(static_data), 30 * 24 * 60 * 60)
+    
+    return static_data
 
 def create_excel_file(df, filename):
     """Helper function to create an Excel file from a DataFrame"""
@@ -121,6 +135,11 @@ def get_latest_income_data(user):
         return None
     
     return income_data
+
+def invalidate_cache(user_id, data_type):
+    """Invalidate cache for a specific user and data type."""
+    cache_key = f"{data_type}_{user_id}"
+    cache.delete(cache_key)
 
 def get_latest_expense_data(user):
     expense_data = {
