@@ -1,8 +1,26 @@
 from pathlib import Path
 import environ
 env = environ.Env()
+import dj_database_url
 import os
 environ.Env.read_env(Path(__file__).resolve().parent.parent / '.env')
+if env('DATABASE_URL', default=None):
+    # Use DATABASE_URL if it's set (for Heroku)
+    DATABASES = {
+        'default': dj_database_url.config(default=env('DATABASE_URL'), conn_max_age=600)
+    }
+else:
+    # Use individual parameters for local development
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': env('DB_NAME'),
+            'USER': env('DB_USER'),
+            'PASSWORD': env('DB_PASSWORD'),
+            'HOST': env('DB_HOST'),
+            'PORT': env('DB_PORT'),
+        }
+    }
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-=$cqosf))2^ewgb4lono!8=q0a36s#2)&*hm3dq1lc(rd-+m2f'
@@ -55,16 +73,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'alfa.wsgi.application'
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': env('DB_NAME'),
-        'USER': env('DB_USER'),
-        'PASSWORD': env('DB_PASSWORD'),
-        'HOST': env('DB_HOST'),
-        'PORT': env('DB_PORT'),
-    }
-}
 
 AUTH_PASSWORD_VALIDATORS = [
     {

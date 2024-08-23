@@ -1,0 +1,1 @@
+web: gunicorn alfa.wsgi --log-file -
