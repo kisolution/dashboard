@@ -95,7 +95,8 @@ class ExpenseProcessor:
         add_df['_temp_key'] = list(zip(*[add_df[col] for col in match_columns_add]))
         
         value_dict = add_df.groupby('_temp_key')[value_column].sum().to_dict()
-        self.main_df[new_column_name] = self.main_df['_temp_key'].map(value_dict).fillna(0)
+        self.main_df[new_column_name] = self.main_df['_temp_key'].map(value_dict)
+        self.main_df[new_column_name] = self.main_df[new_column_name].fillna(0).infer_objects(copy=False)
     
         alfa = self.main_df[new_column_name]
         

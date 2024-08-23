@@ -46,7 +46,7 @@
                 <div class="col-md-5 d-flex justify-content-end">
                     <div>
                         <a href="{% url 'display_expense' %}?company={{ selected_company }}&download=true" class="btn btn-outline-primary mr-2">
-                            <i class="bi bi-file-earmark-excel"></i></i> 전체 데이터 다운로드
+                            <i class="bi bi-file-earmark-excel"></i> 데이터 다운로드
                         </a>
                         <a href="#" id="download-report" class="btn btn-outline-info">
                             <i class="fas fa-file-image mr-1"></i> 보고서 이미지 다운로드
@@ -76,7 +76,7 @@
                             <td>(차) 선급비용(수당)_IFRS15결산</td>
                             <td class="number-cell">{{ report_data.c5|floatformat:0|intcomma }}</td>
                             <td>(대) 판매수수료(수당)_IFRS15결산</td>
-                            <td class="number-cell">{{ report_data.c8|floatformat:0|intcomma }}</td>
+                            <td class="number-cell">{{ report_data.e5|floatformat:0|intcomma }}</td>
                         </tr>
                         <tr>
                             <th colspan="2">2. 정액상각대상 수수료 정액상각처리</th>
@@ -84,7 +84,7 @@
                         </tr>
                         <tr>
                             <td>(차) 판매수수료(수당)_IFRS15결산</td>
-                            <td class="number-cell">{{ report_data.e5|floatformat:0|intcomma }}</td>
+                            <td class="number-cell">{{ report_data.c8|floatformat:0|intcomma }}</td>
                             <td>(대) 선급비용(수당)_IFRS15결산</td>
                             <td class="number-cell">{{ report_data.e8|floatformat:0|intcomma }}</td>
                         </tr>

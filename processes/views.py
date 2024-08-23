@@ -6,17 +6,13 @@ from django.core.cache import cache
 from functions.main_processor import IncomeProcessor
 from functions.processor_second_main import ExpenseProcessor
 from functions.lower_cols import to_lower
-from uploads.models import IncomeUpload, ExpenseUpload
 from processes.models import ProcessedData
-from django.contrib.auth.models import User
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
 from io import BytesIO
 import pandas as pd
-from django_q.tasks import async_task
 from django.utils import timezone
 from django.core.files.base import ContentFile
-import uuid
 
 from utils.s3_utils import get_static_data, get_latest_income_data, get_latest_expense_data, upload_to_s3,get_cached_file_data, get_expense_processed_data, get_income_processed_data, get_file_from_s3
 import logging
@@ -37,14 +33,15 @@ def display_income(request):
     if income_data is None:
         return render(request, 'processes/no_data.html', {'process_type': 'income','message': 'Previous month data is not accessibe'})
     prev_month_df = income_data['prev_month_data']
-    if selected_company == '' or selected_company is None:
-        selected_company = None
-        df_filtered = df
-    else:
+    if selected_company and selected_company != '':
         df_filtered = df[df['보험사'] == selected_company]
-    if prev_month_df is not None and not prev_month_df.empty and selected_company !='':
+    else:
+        df_filtered = df
+        selected_company = "All"  # Set a default value for filename
+    
+    if prev_month_df is not None and not prev_month_df.empty:
         prev_month_df = to_lower(prev_month_df)
-        if selected_company:
+        if selected_company and selected_company != 'All':
             c18 = prev_month_df[prev_month_df['보험사']==selected_company]['기말선수수익'].sum()
             c19 = prev_month_df[prev_month_df['보험사']==selected_company]['기말환수부채'].sum()
         else:
@@ -65,7 +62,7 @@ def display_income(request):
     context = {
         'report_data': report_data,
         'company_names':company_names,
-        'selected_company':selected_company
+        'selected_company':selected_company if selected_company!= 'All' else ''
     }
     return render(request, 'processes/display_income.html', context)
 def betta(df, c18_data, c19_data):
@@ -150,21 +147,28 @@ def display_expense(request):
     latest_processed = ProcessedData.objects.filter(user=user, data_type='EXPENSE').order_by('-upload_date').first()
     if not latest_processed:
         return render(request, 'processes/no_data.html', {'process_type': 'expense','message': 'No processed data available. Please process the data first.'})
+    
     df = pd.read_excel(BytesIO(latest_processed.file_upload.read()))
     company_names = df['보험사'].dropna().unique()
     selected_company = request.GET.get('company')
+    
     expense_data = get_latest_expense_data(user)
     if expense_data is None:
         return render(request, 'processes/no_data.html', {'process_type': 'expense','message': 'Error fetching expense data.'})
+    
     prev_month_df = expense_data['prev_month_df']
-    if selected_company == '' or selected_company is None:
-        selected_company = None
-        df_filtered = df
-    else:
+    
+    # Filter data based on selected company
+    if selected_company and selected_company != '':
         df_filtered = df[df['보험사'] == selected_company]
-    if prev_month_df is not None and not prev_month_df.empty and selected_company !='':
+    else:
+        df_filtered = df
+        selected_company = "All"  # Set a default value for filename
+    
+    # Calculate c18 and c19
+    if prev_month_df is not None and not prev_month_df.empty:
         prev_month_df = to_lower(prev_month_df)
-        if selected_company:
+        if selected_company and selected_company != 'All':
             c18 = prev_month_df[prev_month_df['보험사']==selected_company]['기말선급비용'].sum()
             c19 = prev_month_df[prev_month_df['보험사']==selected_company]['기말환수자산'].sum()
         else:
@@ -172,20 +176,23 @@ def display_expense(request):
             c19 = prev_month_df['기말환수자산'].sum()
     else:     
         c18 = c19 = 0
+    
     report_data = alfa(df_filtered, c18_data=c18, c19_data=c19)
+    
     if request.GET.get('download'):
         output = BytesIO()
         with pd.ExcelWriter(output, engine='openpyxl') as writer:
             df_filtered.to_excel(writer, index=False, sheet_name='Filtered Data')
         output.seek(0)
         response = HttpResponse(output.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-        filename = f"expense_data{'_' + selected_company if selected_company else ''}.xlsx"
+        filename = f"expense_data_{selected_company}.xlsx"
         response['Content-Disposition'] = f'attachment; filename="{filename}"'
         return response
+    
     context = {
         'report_data': report_data,
-        'company_names':company_names,
-        'selected_company':selected_company
+        'company_names': company_names,
+        'selected_company': selected_company if selected_company != "All" else ""
     }
     return render(request, 'processes/display_expense.html', context)
 
