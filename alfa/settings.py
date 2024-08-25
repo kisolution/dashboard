@@ -44,17 +44,18 @@ INSTALLED_APPS = [
     'django.contrib.humanize'
 ]
 # Celery Configuration Options
-CELERY_BROKER_URL = os.environ.get('REDIS_URL') or os.environ.get('REDIS_TLS_URL')
-CELERY_RESULT_BACKEND = os.environ.get('REDIS_URL') or os.environ.get('REDIS_TLS_URL')
+#CELERY_BROKER_URL = os.environ.get('REDIS_URL') or os.environ.get('REDIS_TLS_URL')
+#CELERY_RESULT_BACKEND = os.environ.get('REDIS_URL') or os.environ.get('REDIS_TLS_URL')
+CELERY_BROKER_URL = os.environ.get('REDIS_URL', 'redis://localhost:6379')
+CELERY_RESULT_BACKEND = os.environ.get('REDIS_URL', 'redis://localhost:6379')
+#if not CELERY_BROKER_URL:
+#    CELERY_BROKER_URL = 'redis://localhost:6379/0'
+#    CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 
-if not CELERY_BROKER_URL:
-    CELERY_BROKER_URL = 'redis://localhost:6379/0'
-    CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
-
-CELERY_RESULT_BACKEND = 'django-db'
-# ... rest of your Celery settings
-#CELERY_BROKER_URL = 'sqlite:///celery.sqlite'
-CELERY_RESULT_BACKEND = 'django-db'
+#CELERY_RESULT_BACKEND = 'django-db'
+## ... rest of your Celery settings
+##CELERY_BROKER_URL = 'sqlite:///celery.sqlite'
+#CELERY_RESULT_BACKEND = 'django-db'
 CELERY_CACHE_BACKEND = 'django-cache'
 CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_TASK_SERIALIZER = 'json'
