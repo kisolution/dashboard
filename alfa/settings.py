@@ -46,8 +46,10 @@ INSTALLED_APPS = [
 # Celery Configuration Options
 if os.environ.get('REDIS_URL'):
     CELERY_BROKER_URL = os.environ.get('REDIS_URL')
+    CELERY_RESULT_BACKEND = os.environ.get('REDIS_URL')
 else:
-    CELERY_BROKER_URL = 'sqlite:///celery.sqlite'
+    CELERY_BROKER_URL = 'redis://localhost:6379/0'
+    CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 
 CELERY_RESULT_BACKEND = 'django-db'
 # ... rest of your Celery settings
