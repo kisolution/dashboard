@@ -347,3 +347,141 @@ def check_task_status(request, task_id):
             return JsonResponse({'status': 'PENDING'})
     except Task.DoesNotExist:
         return JsonResponse({'status': 'FAILURE', 'error': 'Task not found'})
+
+
+
+
+
+@login_required
+def fetch_income_data(request):
+    user = request.user
+    cache_key = f"income_data_{user.id}"
+
+    try:
+        static_data = get_static_data()
+        income_data = get_latest_income_data(user)
+        
+        if income_data is None:
+            return render(request, 'uploads/error_template.html', {'error': 'No income data available or error reading from S3'})
+        
+        # Cache the data for the next step
+        cache.set(cache_key, (static_data, income_data), 75600)  # Cache for 1 hour
+        
+        return render(request, 'processes/process_income.html', {'step': 'process'})
+    except Exception as e:
+        return render(request, 'uploads/error_template.html', {'error': f"An error occurred while fetching the data: {str(e)}"})
+@login_required
+def process_income(request):
+    user = request.user
+    cache_key = f"income_data_{user.id}"
+    processed_cache_key = f"processed_income_{user.id}"
+
+    try:
+        cached_data = cache.get(cache_key)
+        if not cached_data:
+            return redirect('fetch_income_data')
+        
+        static_data, income_data = cached_data
+        
+        process = IncomeProcessor(static_data, income_data)
+        process.process()
+        final_df = process.get_final_df()
+        
+        # Generate a unique filename
+        timestamp = timezone.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"processed_income_data_{timestamp}.xlsx"
+        
+        # Define S3 key
+        s3_key = f"processed_folder/{filename}"
+        
+        # Save to BytesIO
+        buffer = BytesIO()
+        with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
+            final_df.to_excel(writer, index=False, sheet_name='Processed Income Data')
+        buffer.seek(0)
+        
+        # Create ProcessedData instance
+        processed_data = ProcessedData(
+            user=user,
+            filename=filename,
+            s3_key=s3_key,
+            data_type='INCOME'
+        )
+        
+        # Save file to S3 and update ProcessedData
+        processed_data.file_upload.save(filename, ContentFile(buffer.getvalue()), save=True)
+        
+        # Update cache with processed data
+        cache.set(processed_cache_key, final_df.to_dict(), 75600) 
+
+        return redirect('display_income')
+    except Exception as e:
+        return render(request, 'uploads/error_template.html', {'error': f"An error occurred while processing the data: {str(e)}"})
+
+
+
+@login_required
+def fetch_expense_data(request):
+    user = request.user
+    cache_key = f"expense_data_{user.id}"
+
+    try:
+        static_data = get_static_data()
+        expense_data = get_latest_expense_data(user)
+        
+        if expense_data is None:
+            return render(request, 'uploads/error_template.html', {'error': 'No income data available or error reading from S3'})
+        
+        # Cache the data for the next step
+        cache.set(cache_key, (static_data, expense_data), 3600)  # Cache for 1 hour
+        
+        return render(request, 'processes/process_expense.html', {'step': 'process'})
+    except Exception as e:
+        return render(request, 'uploads/error_template.html', {'error': f"An error occurred while fetching the data: {str(e)}"})
+@login_required
+def process_expense(request):
+    user = request.user
+    cache_key = f"expense_data_{user.id}"
+    processed_cache_key = f"processed_expense_{user.id}"
+
+    try:
+        cached_data = cache.get(cache_key)
+        if not cached_data:
+            return redirect('fetch_expense_data')
+        
+        static_data, expense_data = cached_data
+        
+        process = ExpenseProcessor(static_data, expense_data)
+        process.process()
+        final_df = process.get_final_df()
+        
+        # Generate a unique filename
+        timestamp = timezone.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"processed_income_data_{timestamp}.xlsx"
+        
+        # Define S3 key
+        s3_key = f"processed_folder/{filename}"
+        
+        # Save to BytesIO
+        buffer = BytesIO()
+        with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
+            final_df.to_excel(writer, index=False, sheet_name='Processed Expense Data')
+        buffer.seek(0)
+        
+        # Create ProcessedData instance
+        processed_data = ProcessedData(
+            user=user,
+            filename=filename,
+            s3_key=s3_key,
+            data_type='EXPENSE'
+        )
+        
+        # Save file to S3 and update ProcessedData
+        processed_data.file_upload.save(filename, ContentFile(buffer.getvalue()), save=True)
+        
+        # Update cache with processed data
+        cache.set(processed_cache_key, final_df.to_dict(), 3600) 
+
+        return redirect('display_expense')
+    except Exception as e:
+        return render(request, 'uploads/error_template.html', {'error': f"An error occurred while processing the data: {str(e)}"})

@@ -12,6 +12,8 @@ import logging
 from botocore.exceptions import ClientError
 import pickle
 s3_storage = S3Boto3Storage()
+from django.utils import timezone
+from django.core.files.base import ContentFile
 
 file_paths = {
     'commission_data': 'Income/commission_data.xlsx',
@@ -183,3 +185,21 @@ def upload_to_s3(file_obj, s3_key):
     
     s3_url = f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/{s3_key}"
     return s3_url
+
+def save_processed_data(user, df, data_type):
+    timestamp = timezone.now().strftime("%Y%m%d_%H%M%S")
+    filename = f"processed_{data_type.lower()}_data_{timestamp}.xlsx"
+    
+    buffer = BytesIO()
+    with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
+        df.to_excel(writer, index=False, sheet_name=f'Processed {data_type} Data')
+    buffer.seek(0)
+    
+    processed_data = ProcessedData(
+        user=user,
+        filename=filename,
+        s3_key=f"processed_folder/{filename}",
+        data_type=data_type
+    )
+    
+    processed_data.file_upload.save(filename, ContentFile(buffer.getvalue()), save=True)

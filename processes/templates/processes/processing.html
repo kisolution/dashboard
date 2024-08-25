@@ -1,0 +1,9 @@
+{% extends 'uploads/base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>처리 중</h2>
+    <p>{{ process_type|title }} 데이터가 아직 처리 중입니다. 잠시 후 다시 확인해 주세요.</p>
+    <a href="{% url 'home' %}" class="btn btn-primary">홈으로 돌아가기</a>
+</div>
+{% endblock %}

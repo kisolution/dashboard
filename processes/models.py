@@ -30,3 +30,26 @@ class ProcessedData(models.Model):
     class Meta:
         verbose_name = 'Processed Data'
         verbose_name_plural = 'Processed Data'
+
+
+class TaskStatus(models.Model):
+    STATUS_CHOICES = [
+        ('PENDING', 'Pending'),
+        ('PROCESSING', 'Processing'),
+        ('COMPLETE', 'Complete'),
+        ('FAILED', 'Failed'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    task_type = models.CharField(max_length=50)  # e.g., 'INCOME', 'EXPENSE'
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        unique_together = ('user', 'task_type')
+        verbose_name_plural = 'Task Statuses'
+
+    def __str__(self):
+        return f"{self.user.username}'s {self.task_type} task - {self.status}"
