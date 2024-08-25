@@ -1,4 +1,4 @@
-from background_task import background
+from celery import shared_task
 from django.contrib.auth.models import User
 from .models import ProcessedData, TaskStatus
 from functions.income_processor import IncomeProcessor
@@ -9,7 +9,7 @@ from django.utils import timezone
 from io import BytesIO
 import pandas as pd
 from django.shortcuts import render, redirect
-@background(schedule=60)
+@shared_task(schedule=60)
 def process_income_task(user_id):
     user = User.objects.get(id=user_id)
     task_status, _ = TaskStatus.objects.get_or_create(user=user, task_type='INCOME')
@@ -37,7 +37,7 @@ def process_income_task(user_id):
         task_status.save()
         raise e
 
-@background(schedule=60)
+@shared_task(schedule=60)
 def process_expense_task(user_id):
     user = User.objects.get(id=user_id)
     task_status, _ = TaskStatus.objects.get_or_create(user=user, task_type='EXPENSE')

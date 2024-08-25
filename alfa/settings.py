@@ -34,7 +34,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'background_task',
+    'django_celery_results',
     'storages',
     'users',
     'uploads',
@@ -43,9 +43,22 @@ INSTALLED_APPS = [
     'widget_tweaks',
     'django.contrib.humanize'
 ]
-MAX_ATTEMPTS = 1
-MAX_RUN_TIME = 3600
-BACKGROUND_TASK_RUN_ASYNC = True
+# Celery Configuration Options
+if os.environ.get('REDIS_URL'):
+    CELERY_BROKER_URL = os.environ.get('REDIS_URL')
+else:
+    CELERY_BROKER_URL = 'sqlite:///celery.sqlite'
+
+CELERY_RESULT_BACKEND = 'django-db'
+# ... rest of your Celery settings
+#CELERY_BROKER_URL = 'sqlite:///celery.sqlite'
+CELERY_RESULT_BACKEND = 'django-db'
+CELERY_CACHE_BACKEND = 'django-cache'
+CELERY_ACCEPT_CONTENT = ['application/json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'UTC'
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',

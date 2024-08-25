@@ -1,2 +1,2 @@
-web: gunicorn alfa.wsgi --timeout 120 --log-file -
-worker: python manage.py process_tasks --queue=default
+web: gunicorn alfa.wsgi --log-file -
+worker: celery -A alfa worker -l info

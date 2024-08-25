@@ -15,14 +15,15 @@ from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from .tasks import process_income_task, process_expense_task
+
 @login_required
 def initiate_income_process(request):
-    process_income_task(request.user.id)
+    process_income_task.delay(request.user.id)
     return render(request, 'processes/processing_started.html', {'process_type': 'income'})
 
 @login_required
 def initiate_expense_process(request):
-    process_expense_task(request.user.id)
+    process_expense_task.delay(request.user.id)
     return render(request, 'processes/processing_started.html', {'process_type': 'expense'})
 
 @login_required
