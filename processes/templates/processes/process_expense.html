@@ -1,0 +1,28 @@
+{% extends 'uploads/base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">지급수수료 프로세스</h2>
+    
+    {% if step == 'fetch' %}
+        <div class="alert alert-info" role="alert">
+            데이터를 가져오는 중입니다. 잠시만 기다려주세요...
+        </div>
+        <div class="text-center">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">로딩중...</span>
+            </div>
+        </div>
+    {% elif step == 'process' %}
+        <div class="alert alert-success" role="alert">
+            데이터를 성공적으로 가져왔습니다. 이제 처리를 시작할 수 있습니다.
+        </div>
+        <form method="post" action="{% url 'process_expense' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-primary btn-lg">
+                <i class="bi bi-gear-fill"></i> 수입수수료 데이터 처리
+            </button>
+        </form>
+    {% endif %}
+</div>
+{% endblock %}

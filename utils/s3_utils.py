@@ -117,7 +117,7 @@ def get_cached_file_data(file_type, user):
         logger.info(f"Retrieved file for {file_type}: {file.filename}, uploaded at {file.upload_date}")
         df = get_file_from_s3(file.s3_key)
         if df is not None:
-            cache.set(cache_key, df, 3600)  # Cache for 1 hour
+            cache.set(cache_key, df, 75600)  # Cache for 1 hour
         return df
     else:
         logger.warning(f"No file found for {file_type}")

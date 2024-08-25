@@ -50,7 +50,7 @@
                 </div>
                 {% endfor %}
                 <div class="text-center mt-4">
-                    <a href="{% url 'process-income' %}" class="btn btn-outline-primary btn-lg">
+                    <a href="{% url 'fetch_income_data' %}" class="btn btn-outline-primary btn-lg">
                         <i class="bi bi-gear-fill"></i> 수입수수료 프로세스
                     </a>
                 </div>
@@ -87,9 +87,9 @@
                     </div>
                     {% endfor %}
                 </div>
-                <div class="text-center mt-2">
-                    <a href="{% url 'process-expense' %}" class="btn btn-outline-primary btn-lg">
-                        <i class="bi bi-gear-fill"></i> 지급수수료 프로세스
+                <div class="text-center mt-4">
+                    <a href="{% url 'fetch_expense_data' %}" class="btn btn-outline-primary btn-lg">
+                        <i class="bi bi-gear-fill"></i> 수입수수료 프로세스
                     </a>
                 </div>
             </div>

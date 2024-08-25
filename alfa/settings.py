@@ -3,6 +3,7 @@ import environ
 env = environ.Env()
 import dj_database_url
 import os
+from redis import Redis
 environ.Env.read_env(Path(__file__).resolve().parent.parent / '.env')
 if env('DATABASE_URL', default=None):
     # Use DATABASE_URL if it's set (for Heroku)
@@ -21,7 +22,7 @@ else:
             'PORT': env('DB_PORT'),
         }
     }
-
+ROOT_URLCONF = 'alfa.urls'
 BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-=$cqosf))2^ewgb4lono!8=q0a36s#2)&*hm3dq1lc(rd-+m2f'
 DEBUG = True
@@ -33,7 +34,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
+    
     'storages',
     'users',
     'uploads',
@@ -52,8 +53,6 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
-
-ROOT_URLCONF = 'alfa.urls'
 
 TEMPLATES = [
     {

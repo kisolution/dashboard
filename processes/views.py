@@ -1,104 +1,60 @@
-from urllib import response
-from urllib.parse import unquote
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from django.core.cache import cache
-from functions.main_processor import IncomeProcessor
-from functions.processor_second_main import ExpenseProcessor
 from functions.lower_cols import to_lower
 from processes.models import ProcessedData
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
 from io import BytesIO
 import pandas as pd
+
+from functions.others import income_report, expense_report
+
+from utils.s3_utils import get_latest_income_data, get_latest_expense_data, get_file_from_s3, get_static_data
+import logging
+from django.core.cache import cache
 from django.utils import timezone
+from io import BytesIO
 from django.core.files.base import ContentFile
 
-from utils.s3_utils import get_static_data, get_latest_income_data, get_latest_expense_data, upload_to_s3,get_cached_file_data, get_expense_processed_data, get_income_processed_data, get_file_from_s3
-import logging
+from functions.income_processor import IncomeProcessor
+from functions.expense_processor import ExpenseProcessor
+
 
 logger = logging.getLogger(__name__)
+
+
+
+
 @login_required
-def display_income(request):
+def fetch_income_data(request):
     user = request.user
-    
-    cache_key = f"processed_income_{user.id}"
-    latest_processed = ProcessedData.objects.filter(user=user, data_type='INCOME').order_by('-upload_date').first()
-    if not latest_processed:
-        return render(request, 'processes/no_data.html', {'process_type': 'income','message': 'No processed data available. Please process the data first.'})
-    df = pd.read_excel(BytesIO(latest_processed.file_upload.read()))
-    company_names = df['보험사'].dropna().unique()
-    selected_company = request.GET.get('company')
-    income_data = get_latest_income_data(user)
-    if income_data is None:
-        return render(request, 'processes/no_data.html', {'process_type': 'income','message': 'Previous month data is not accessibe'})
-    prev_month_df = income_data['prev_month_data']
-    if selected_company and selected_company != '':
-        df_filtered = df[df['보험사'] == selected_company]
-    else:
-        df_filtered = df
-        selected_company = "All"  # Set a default value for filename
-    
-    if prev_month_df is not None and not prev_month_df.empty:
-        prev_month_df = to_lower(prev_month_df)
-        if selected_company and selected_company != 'All':
-            c18 = prev_month_df[prev_month_df['보험사']==selected_company]['기말선수수익'].sum()
-            c19 = prev_month_df[prev_month_df['보험사']==selected_company]['기말환수부채'].sum()
-        else:
-            c18 = prev_month_df['기말선수수익'].sum()
-            c19 = prev_month_df['기말환수부채'].sum()
-    else:     
-        c18 = c19 = 0
-    report_data = betta(df_filtered, c18_data=c18, c19_data=c19)
-    if request.GET.get('download'):
-        output = BytesIO()
-        with pd.ExcelWriter(output, engine='openpyxl') as writer:
-            df_filtered.to_excel(writer, index=False, sheet_name='Filtered Data')
-        output.seek(0)
-        response = HttpResponse(output.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-        filename = f"income_data{'_' + selected_company if selected_company else ''}.xlsx"
-        response['Content-Disposition'] = f'attachment; filename="{filename}"'
-        return response
-    context = {
-        'report_data': report_data,
-        'company_names':company_names,
-        'selected_company':selected_company if selected_company!= 'All' else ''
-    }
-    return render(request, 'processes/display_income.html', context)
-def betta(df, c18_data, c19_data):
-    e5 = df['당월정액상각대상수령액'].sum()
-    c5 = e5
-    c8 = df['당월수익인식액'].sum()
-    e8 = c8
-    e11 = df['당기환수수익조정'].sum()
-    c11 = e11
-    c14 = df['기타조정액'].sum()
-    e14 = c14
-    c18 = c18_data
-    c19 = c19_data
-    d23 = c18 + c5 - e8 + c14
-    e23 = df['기말선수수익'].sum()
-    f23 = d23 - e23
-    d24 = c19 + c11
-    e24 = df['기말환수부채'].sum()
-    f24 = d24 - e24
-    return {
-        'e5': e5, 'c5': c5, 'c8': c8, 'e8': e8, 'e11': e11, 'c11': c11,
-        'c14': c14, 'e14': e14, 'c18': c18, 'c19': c19, 'd23': d23,
-        'e23': e23, 'f23': f23, 'd24': d24, 'e24': e24, 'f24': f24
-    }  
-@login_required
-def process_income(request):
-    user = request.user
-    cache_key = f"processed_income_{user.id}"
+    cache_key = f"income_data_{user.id}"
 
     try:
         static_data = get_static_data()
         income_data = get_latest_income_data(user)
         
         if income_data is None:
-            logger.error("No income data available or error reading from S3")
             return render(request, 'uploads/error_template.html', {'error': 'No income data available or error reading from S3'})
+        
+        # Cache the data for the next step
+        cache.set(cache_key, (static_data, income_data), 75600)  # Cache for 1 hour
+        
+        return render(request, 'processes/process_income.html', {'step': 'process'})
+    except Exception as e:
+        return render(request, 'uploads/error_template.html', {'error': f"An error occurred while fetching the data: {str(e)}"})
+@login_required
+def process_income(request):
+    user = request.user
+    cache_key = f"income_data_{user.id}"
+    processed_cache_key = f"processed_income_{user.id}"
+
+    try:
+        cached_data = cache.get(cache_key)
+        if not cached_data:
+            return redirect('fetch_income_data')
+        
+        static_data, income_data = cached_data
         
         process = IncomeProcessor(static_data, income_data)
         process.process()
@@ -128,27 +84,158 @@ def process_income(request):
         # Save file to S3 and update ProcessedData
         processed_data.file_upload.save(filename, ContentFile(buffer.getvalue()), save=True)
         
-        # Update cache
-        final_df_html = final_df.to_html(classes='table table-striped table-hover', index=False)
-        cache.set(cache_key, final_df_html, 3600)  # Cache for 1 hour
+        # Update cache with processed data
+        cache.set(processed_cache_key, final_df.to_dict(), 75600) 
 
         return redirect('display_income')
     except Exception as e:
-        logger.exception(f"Error in process_income view: {e}")
         return render(request, 'uploads/error_template.html', {'error': f"An error occurred while processing the data: {str(e)}"})
 
 
-### Expense
+
+@login_required
+def fetch_expense_data(request):
+    user = request.user
+    cache_key = f"expense_data_{user.id}"
+
+    try:
+        static_data = get_static_data()
+        expense_data = get_latest_expense_data(user)
+        
+        if expense_data is None:
+            return render(request, 'uploads/error_template.html', {'error': 'No income data available or error reading from S3'})
+        
+        # Cache the data for the next step
+        cache.set(cache_key, (static_data, expense_data), 3600)  # Cache for 1 hour
+        
+        return render(request, 'processes/process_expense.html', {'step': 'process'})
+    except Exception as e:
+        return render(request, 'uploads/error_template.html', {'error': f"An error occurred while fetching the data: {str(e)}"})
+@login_required
+def process_expense(request):
+    user = request.user
+    cache_key = f"expense_data_{user.id}"
+    processed_cache_key = f"processed_expense_{user.id}"
+
+    try:
+        cached_data = cache.get(cache_key)
+        if not cached_data:
+            return redirect('fetch_expense_data')
+        
+        static_data, expense_data = cached_data
+        
+        process = ExpenseProcessor(static_data, expense_data)
+        process.process()
+        final_df = process.get_final_df()
+        
+        # Generate a unique filename
+        timestamp = timezone.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"processed_income_data_{timestamp}.xlsx"
+        
+        # Define S3 key
+        s3_key = f"processed_folder/{filename}"
+        
+        # Save to BytesIO
+        buffer = BytesIO()
+        with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
+            final_df.to_excel(writer, index=False, sheet_name='Processed Expense Data')
+        buffer.seek(0)
+        
+        # Create ProcessedData instance
+        processed_data = ProcessedData(
+            user=user,
+            filename=filename,
+            s3_key=s3_key,
+            data_type='EXPENSE'
+        )
+        
+        # Save file to S3 and update ProcessedData
+        processed_data.file_upload.save(filename, ContentFile(buffer.getvalue()), save=True)
+        
+        # Update cache with processed data
+        cache.set(processed_cache_key, final_df.to_dict(), 3600) 
+
+        return redirect('display_expense')
+    except Exception as e:
+        return render(request, 'uploads/error_template.html', {'error': f"An error occurred while processing the data: {str(e)}"})
+
+@login_required
+def display_income(request):
+    user = request.user
+    
+    processed_cache_key = f"processed_income_{user.id}"
+    cached_data = cache.get(processed_cache_key)
+
+    if not cached_data:
+        # If there's no cached data, check for the latest processed data in the database
+        latest_processed = ProcessedData.objects.filter(user=user, data_type='INCOME').order_by('-upload_date').first()
+        if not latest_processed:
+            return render(request, 'processes/no_data.html', {'process_type': 'income','message': 'No processed data available. Please process the data first.'})
+        df = pd.read_excel(BytesIO(latest_processed.file_upload.read()))
+    else:
+        # If there's cached data, use it
+        df = pd.DataFrame(cached_data)
+
+    company_names = df['보험사'].dropna().unique()
+    selected_company = request.GET.get('company')
+    
+    # Fetch previous month data
+    income_data = get_latest_income_data(user)
+    if income_data is None:
+        return render(request, 'processes/no_data.html', {'process_type': 'income','message': 'Previous month data is not accessible'})
+    prev_month_df = income_data['prev_month_data']
+
+    if selected_company and selected_company != '':
+        df_filtered = df[df['보험사'] == selected_company]
+    else:
+        df_filtered = df
+        selected_company = "All"  # Set a default value for filename
+    
+    if prev_month_df is not None and not prev_month_df.empty:
+        prev_month_df = to_lower(prev_month_df)
+        if selected_company and selected_company != 'All':
+            c18 = prev_month_df[prev_month_df['보험사']==selected_company]['기말선수수익'].sum()
+            c19 = prev_month_df[prev_month_df['보험사']==selected_company]['기말환수부채'].sum()
+        else:
+            c18 = prev_month_df['기말선수수익'].sum()
+            c19 = prev_month_df['기말환수부채'].sum()
+    else:     
+        c18 = c19 = 0
+
+    report_data = income_report(df_filtered, c18_data=c18, c19_data=c19)
+
+    if request.GET.get('download'):
+        output = BytesIO()
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            df_filtered.to_excel(writer, index=False, sheet_name='Filtered Data')
+        output.seek(0)
+        response = HttpResponse(output.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        filename = f"income_data{'_' + selected_company if selected_company else ''}.xlsx"
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return response
+
+    context = {
+        'report_data': report_data,
+        'company_names': company_names,
+        'selected_company': selected_company if selected_company != 'All' else ''
+    }
+    return render(request, 'processes/display_income.html', context)
 @login_required
 def display_expense(request):
     user = request.user
-    
-    cache_key = f"processed_expense_{user.id}"
-    latest_processed = ProcessedData.objects.filter(user=user, data_type='EXPENSE').order_by('-upload_date').first()
-    if not latest_processed:
-        return render(request, 'processes/no_data.html', {'process_type': 'expense','message': 'No processed data available. Please process the data first.'})
-    
-    df = pd.read_excel(BytesIO(latest_processed.file_upload.read()))
+    processed_cache_key = f"processed_expense_{user.id}"
+    cached_data = cache.get(processed_cache_key)
+
+    if not cached_data:
+        # If there's no cached data, check for the latest processed data in the database
+        latest_processed = ProcessedData.objects.filter(user=user, data_type='EXPENSE').order_by('-upload_date').first()
+        if not latest_processed:
+            return render(request, 'processes/no_data.html', {'process_type': 'expense','message': 'No processed data available. Please process the data first.'})
+        df = pd.read_excel(BytesIO(latest_processed.file_upload.read()))
+    else:
+        # If there's cached data, use it
+        df = pd.DataFrame(cached_data)
+
     company_names = df['보험사'].dropna().unique()
     selected_company = request.GET.get('company')
     
@@ -177,7 +264,7 @@ def display_expense(request):
     else:     
         c18 = c19 = 0
     
-    report_data = alfa(df_filtered, c18_data=c18, c19_data=c19)
+    report_data = expense_report(df_filtered, c18_data=c18, c19_data=c19)
     
     if request.GET.get('download'):
         output = BytesIO()
@@ -196,79 +283,7 @@ def display_expense(request):
     }
     return render(request, 'processes/display_expense.html', context)
 
-def alfa(df, c18_data, c19_data):
-    e5 = df['당월정액상각대상수지급액'].sum()
-    c5 = e5
-    c8 = df['당월비용인식액'].sum()
-    e8 = c8
-    e11 = df['당기환수비용조정'].sum()
-    c11 = e11
-    c14 = df['기타조정액'].sum()
-    e14 = c14
-    c18 = c18_data
-    c19 = c19_data
-    d23 = c18 + c5 - e8 + c14
-    e23 = df['기말선급비용'].sum()
-    f23 = d23 - e23
-    d24 = c19 + c11
-    e24 = df['기말환수자산'].sum()
-    f24 = d24 - e24
-    return {
-        'e5': e5, 'c5': c5, 'c8': c8, 'e8': e8, 'e11': e11, 'c11': c11,
-        'c14': c14, 'e14': e14, 'c18': c18, 'c19': c19, 'd23': d23,
-        'e23': e23, 'f23': f23, 'd24': d24, 'e24': e24, 'f24': f24
-    }
 
-@login_required
-def process_expense(request):
-    user = request.user
-    cache_key = f"processed_expense_{user.id}"
-
-    try:
-        static_data = get_static_data()
-        expense_data = get_latest_expense_data(user)
-        
-        if expense_data is None:
-            logger.error("No expense data available or error reading from S3")
-            return render(request, 'uploads/error_template.html', {'error': 'No income data available or error reading from S3'})
-        
-        process = ExpenseProcessor(static_data, expense_data)
-        process.process()
-        final_df = process.get_final_df()
-        
-        # Generate a unique filename
-        timestamp = timezone.now().strftime("%Y%m%d_%H%M%S")
-        filename = f"processed_expense_data_{timestamp}.xlsx"
-        
-        # Define S3 key
-        s3_key = f"processed_folder/{filename}"
-        
-        # Save to BytesIO
-        buffer = BytesIO()
-        with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
-            final_df.to_excel(writer, index=False, sheet_name='Processed Expense Data')
-        buffer.seek(0)
-        
-        # Create ProcessedData instance
-        processed_data = ProcessedData(
-            user=user,
-            filename=filename,
-            s3_key=s3_key,
-            data_type='EXPENSE'
-        )
-        
-        # Save file to S3 and update ProcessedData
-        processed_data.file_upload.save(filename, ContentFile(buffer.getvalue()), save=True)
-        
-        # Update cache
-        final_df_html = final_df.to_html(classes='table table-striped table-hover', index=False)
-        cache.set(cache_key, final_df_html, 3600)  # Cache for 1 hour
-
-        return redirect('display_expense')
-    except Exception as e:
-        logger.exception(f"Error in process_income view: {e}")
-        return render(request, 'uploads/error_template.html', {'error': f"An error occurred while processing the data: {str(e)}"})
-    
 
 @login_required
 def show_history(request):
