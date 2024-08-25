@@ -3,7 +3,7 @@ import environ
 env = environ.Env()
 import dj_database_url
 import os
-from redis import Redis
+
 environ.Env.read_env(Path(__file__).resolve().parent.parent / '.env')
 if env('DATABASE_URL', default=None):
     # Use DATABASE_URL if it's set (for Heroku)
