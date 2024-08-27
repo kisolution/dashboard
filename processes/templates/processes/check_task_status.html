@@ -1,0 +1,25 @@
+<html>
+<body>
+    <h1>Processing Income Data</h1>
+    <p>Current status: <span id="status">{{ status }}</span></p>
+
+    <script>
+        function checkStatus() {
+            fetch('/check-task-status/?task_id={{ task_id }}')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('status').textContent = data.status;
+                    if (data.status === 'COMPLETE') {
+                        window.location.href = '/display-income/';
+                    } else if (data.status === 'FAILED') {
+                        alert('Processing failed. Please try again.');
+                    } else {
+                        setTimeout(checkStatus, 5000);  // Check again in 5 seconds
+                    }
+                });
+        }
+
+        checkStatus();
+    </script>
+</body>
+</html>

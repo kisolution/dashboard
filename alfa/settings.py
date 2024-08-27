@@ -4,6 +4,8 @@ env = environ.Env()
 import dj_database_url
 import os
 
+import os
+from celery.schedules import crontab
 environ.Env.read_env(Path(__file__).resolve().parent.parent / '.env')
 if env('DATABASE_URL', default=None):
     # Use DATABASE_URL if it's set (for Heroku)
@@ -11,7 +13,6 @@ if env('DATABASE_URL', default=None):
         'default': dj_database_url.config(default=env('DATABASE_URL'), conn_max_age=600)
     }
 else:
-    # Use individual parameters for local development
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
@@ -43,25 +44,20 @@ INSTALLED_APPS = [
     'widget_tweaks',
     'django.contrib.humanize'
 ]
-# Celery Configuration Options
-#CELERY_BROKER_URL = os.environ.get('REDIS_URL') or os.environ.get('REDIS_TLS_URL')
-#CELERY_RESULT_BACKEND = os.environ.get('REDIS_URL') or os.environ.get('REDIS_TLS_URL')
 CELERY_BROKER_URL = os.environ.get('REDIS_URL', 'redis://localhost:6379')
 CELERY_RESULT_BACKEND = os.environ.get('REDIS_URL', 'redis://localhost:6379')
-#if not CELERY_BROKER_URL:
-#    CELERY_BROKER_URL = 'redis://localhost:6379/0'
-#    CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
-
-#CELERY_RESULT_BACKEND = 'django-db'
-## ... rest of your Celery settings
-##CELERY_BROKER_URL = 'sqlite:///celery.sqlite'
-#CELERY_RESULT_BACKEND = 'django-db'
 CELERY_CACHE_BACKEND = 'django-cache'
 CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'UTC'
+CELERYD_HIJACK_ROOT_LOGGER = False
+CELERY_WORKER_HIJACK_ROOT_LOGGER = False
 
+# Optional: Configure Celery to use Django's logging
+CELERY_WORKER_TASK_LOG_FORMAT = (
+    '[%(asctime)s: %(levelname)s/%(processName)s] [%(task_name)s(%(task_id)s)] %(message)s'
+)
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -145,13 +141,8 @@ STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 # Media files
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/media/'
-
-# This is for local development, comment out when using S3
-# STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
 AUTHENTICATION_BACKENDS = [
     'users.backends.EmailBackend',
     'django.contrib.auth.backends.ModelBackend',

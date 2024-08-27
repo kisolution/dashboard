@@ -99,11 +99,11 @@ def get_file_from_s3(s3_key):
         return None
 
 def get_cached_file_data(file_type, user):
-    cache_key = f"{file_type}_{user.id}"
-    cached_data = cache.get(cache_key)
-    
-    if cached_data is not None:
-        return cached_data
+    #cache_key = f"{file_type}_{user.id}"
+    #cached_data = cache.get(cache_key)
+    #
+    #if cached_data is not None:
+    #    return cached_data
     
     if file_type in [choice[0] for choice in IncomeUpload.INCOME_TYPES]:
         file = IncomeUpload.objects.filter(user=user, income_type=file_type).order_by('-upload_date').first()
@@ -118,8 +118,8 @@ def get_cached_file_data(file_type, user):
     if file:
         logger.info(f"Retrieved file for {file_type}: {file.filename}, uploaded at {file.upload_date}")
         df = get_file_from_s3(file.s3_key)
-        if df is not None:
-            cache.set(cache_key, df, 75600)  # Cache for 1 hour
+        #if df is not None:
+        #    cache.set(cache_key, df, 75600)  # Cache for 1 hour
         return df
     else:
         logger.warning(f"No file found for {file_type}")
@@ -185,10 +185,9 @@ def upload_to_s3(file_obj, s3_key):
     
     s3_url = f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/{s3_key}"
     return s3_url
-
 def save_processed_data(user, df, data_type):
-    timestamp = timezone.now().strftime("%Y%m%d_%H%M%S")
-    filename = f"processed_{data_type.lower()}_data_{timestamp}.xlsx"
+    timestamp = timezone.now()
+    filename = f"processed_{data_type.lower()}_data_{timestamp.strftime('%Y%m%d_%H%M%S')}.xlsx"
     
     buffer = BytesIO()
     with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
@@ -199,7 +198,12 @@ def save_processed_data(user, df, data_type):
         user=user,
         filename=filename,
         s3_key=f"processed_folder/{filename}",
-        data_type=data_type
+        data_type=data_type,
+        upload_date=timestamp
     )
     
     processed_data.file_upload.save(filename, ContentFile(buffer.getvalue()), save=True)
+    print('saved and uploaded as', processed_data.s3_key)
+    # Update cache with new data
+    cache_key = f"{data_type}_{user.id}"
+    cache.set(cache_key, df, 3600)  # Cache for 1 hour

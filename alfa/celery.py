@@ -1,14 +1,26 @@
 import os
 from celery import Celery
+from celery.signals import task_failure, worker_process_init
+import logging
 
-# Set the default Django settings module for the 'celery' program.
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'alfa.settings')
 
 app = Celery('alfa')
-
-# Using a string here means the worker doesn't have to serialize
-# the configuration object to child processes.
 app.config_from_object('django.conf:settings', namespace='CELERY')
-
-# Load task modules from all registered Django apps.
 app.autodiscover_tasks()
+
+logger = logging.getLogger(__name__)
+
+@task_failure.connect
+def handle_task_failure(**kwargs):
+    task = kwargs.get('sender')
+    exception = kwargs.get('exception')
+    logger.error(f'Task {task.name} failed: {exception}')
+
+@worker_process_init.connect
+def configure_worker(**kwargs):
+    logger.info('Celery worker process initialized')
+
+@app.task(bind=True)
+def debug_task(self):
+    print(f'Request: {self.request!r}')

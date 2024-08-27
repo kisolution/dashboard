@@ -1,14 +1,14 @@
-from django.urls import path, include, re_path
+from django.urls import path, re_path
 from . import views
 
 urlpatterns = [
     path('display-income/', views.display_income, name='display_income'),
     #path('income/process/', views.process_income, name='process-income'),
-    path('expense/', views.display_expense, name='display_expense'),
+    path('display-expense/', views.display_expense, name='display_expense'),
     path('initiate-income-process/', views.initiate_income_process, name='initiate_income_process'),
     path('initiate-expense-process/', views.initiate_expense_process, name='initiate_expense_process'),
-    path('check-task-status/', views.check_task_status, name='check_task_status'),
     
+    #path('check-task-status/', views.check_task_status, name='check_task_status'),    
     #path('fet_income_data/',views.fetch_income_data, name = 'fetch_income_data'),
     #path('process-income/', views.process_income, name='process_income'),
     #path('fet_expense_data/',views.fetch_expense_data, name = 'fetch_expense_data'),
