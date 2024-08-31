@@ -1,7 +1,8 @@
 from django.shortcuts import render, redirect
 from .forms import IncomeUploadForm, ExpenseUploadForm
 from .models import IncomeUpload, ExpenseUpload
-from functions.sample_datas import sample_data
+#from functions.sample_datas import sample_data
+from functions.sample_datas_new import sample_data
 from django.http import HttpResponse
 import pandas as pd
 from django.contrib import messages
@@ -11,15 +12,20 @@ def home_upload_view(request):
     expense_types = dict(ExpenseUpload.EXPENSE_TYPES) 
     income_type_translations = {
         'INC_PREV_MONTH': '전월데이터',
-        'INC_DATA_CASE': '건별데이터',
+        'INC_LIFE': '생보장기',
+        'INC_NON_LIFE':'손보장기',
         'INC_MAIN': '당월데이터',
+        'INC_COMISSION': '수입수수료율',
+        'INC_RETENTION': '보험사유지율',
     }  
     expense_type_translations = {
         'EXP_OVERRIDE': '오버라이드',
         'EXP_RETIREMENT':'퇴사자',
         'EXP_SECURITY':'증권번호별',
         'EXP_PREV_MONTH': '전월데이터',
-        'EXP_MAIN': '당월데이터'
+        'EXP_MAIN': '당월데이터',
+        'EXP_COMISSION': '수입수수료율',
+        'EXP_RETENTION': '보험사유지율',
     }
     income_forms = {income_type: IncomeUploadForm(prefix=f'income_{income_type}') for income_type in income_types}
     expense_forms = {expense_type: ExpenseUploadForm(prefix=f'expense_{expense_type}') for expense_type in expense_types}

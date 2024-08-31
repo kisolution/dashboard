@@ -21,7 +21,7 @@ def display_income(request):
         return render(request, 'uploads/error_template.html', {'message': 'No data available'})
     company_names = df['보험사'].dropna().unique()
     selected_company = request.GET.get('company')
-    prev_month_df = get_cached_file_data('INC_PREV_MONTH', user)
+    prev_month_df = get_cached_file_data('INC_PREV_MONTH', user) 
     if selected_company and selected_company != '':
         df_filtered = df[df['보험사'] == selected_company]
     else:

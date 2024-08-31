@@ -17,8 +17,11 @@ class S3Storage(S3Boto3Storage):
 class IncomeUpload(models.Model):
     INCOME_TYPES = [
         ('INC_PREV_MONTH', 'Previous Month'),
-        ('INC_DATA_CASE', 'Data Case'),
+        ('INC_LIFE', 'Life insurance'),
+        ('INC_NON_LIFE', 'Non Life Insurance'),
         ('INC_MAIN', 'Main'),
+        ('INC_RETENTION', 'Retention'),
+        ('INC_COMISSION', 'Comission')
     ]
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     income_type = models.CharField(max_length=20, choices=INCOME_TYPES)
@@ -62,6 +65,8 @@ class ExpenseUpload(models.Model):
         ('EXP_SECURITY', 'Security'),
         ('EXP_RETIREMENT', 'Retirement'),
         ('EXP_MAIN', 'Main'),
+        ('EXP_RETENTION', 'Retention'),
+        ('EXP_COMISSION', 'Comission')
     ]
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     expense_type = models.CharField(max_length=20, choices=EXPENSE_TYPES)

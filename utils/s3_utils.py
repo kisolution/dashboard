@@ -17,7 +17,7 @@ from django.core.files.base import ContentFile
 
 file_paths = {
     'commission_data': 'Income/commission_data.xlsx',
-    'retention_data': 'Income/retention_data.xlsx',
+    #'retention_data': 'Income/retention_data.xlsx',
     'prev_month_data': 'Income/prev_month_data.xlsx',
     'commission_df': 'Payment/commission_df.xlsx',
     'retention_df': 'Payment/retention_df.xlsx',
@@ -127,9 +127,13 @@ def get_cached_file_data(file_type, user):
 
 def get_latest_income_data(user):
     income_data = {
-        'case_data': get_cached_file_data('INC_DATA_CASE', user),
+        'life_ins_data': get_cached_file_data('INC_LIFE', user),
+        'nonlife_ins_data': get_cached_file_data('INC_NON_LIFE', user),
         'prev_month_data': get_cached_file_data('INC_PREV_MONTH', user),
         'main_data': get_cached_file_data('INC_MAIN', user),
+        'retention_data':get_cached_file_data('INC_RETENTION', user),
+        'commission_data':get_cached_file_data('INC_COMISSION', user),
+
     }
     
     if any(df is None for df in income_data.values()):
@@ -150,6 +154,8 @@ def get_latest_expense_data(user):
         'prev_month_df': get_cached_file_data('EXP_PREV_MONTH', user),
         'security_df': get_cached_file_data('EXP_SECURITY', user),
         'retirement_df': get_cached_file_data('EXP_RETIREMENT', user),
+        'commission_df':get_cached_file_data('EXP_COMISSION', user),
+        'retention_df':get_cached_file_data('EXP_RETENTION', user)
     }
     
     if any(df is None for df in expense_data.values()):

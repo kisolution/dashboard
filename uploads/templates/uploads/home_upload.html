@@ -16,6 +16,26 @@
         box-shadow: 0 5px 15px rgba(0,0,0,0.1);
         transition: box-shadow 0.3s ease-in-out;
     }
+    .less-frequent-upload {
+        background-color: #e9ecef;
+        border-radius: 10px;
+        padding: 10px;
+        margin-top: 10px;
+    }
+    .less-frequent-card {
+        font-size: 0.8rem;
+    }
+    .less-frequent-card .card-body {
+        padding: 0.5rem;
+    }
+    .less-frequent-card .form-control {
+        font-size: 0.8rem;
+        padding: 0.2rem 0.5rem;
+    }
+    .less-frequent-card .btn {
+        font-size: 0.8rem;
+        padding: 0.2rem 0.5rem;
+    }
 </style>
 {% endblock %}
 
@@ -24,31 +44,58 @@
     {% if request.user.is_authenticated %}
     <div class="row">
         <!-- Income Uploads Section -->
-        <div class="col-lg-4">
+        <div class="col-lg-6">
             <div class="upload-section p-4 mb-4">
-                <h4 class="upload-title pb-2 mb-4">
-                     수입수수료 업로드
-                </h4>
-                {% for income_type, form in income_forms.items %}
-                <div class="card mb-3 card-hover">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h5 class="card-title mb-0">{{ income_type_translations|get_item:income_type|default:income_type }}</h5>
-                            <a href="{% url 'download_sample' upload_type=income_type|lower %}" class="btn btn-outline-info btn-sm">
-                                <i class="bi bi-download"></i> 샘플
-                            </a>
+                <h4 class="upload-title pb-2 mb-4">수입수수료 업로드</h4>
+                <div class="row">
+                    {% for income_type, form in income_forms.items %}
+                        {% if income_type != 'INC_RETENTION' and income_type != 'INC_COMISSION' %}
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100 card-hover">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h5 class="card-title mb-0">{{ income_type_translations|get_item:income_type|default:income_type }}</h5>
+                                        <a href="{% url 'download_sample' upload_type=income_type|lower %}" class="btn btn-outline-info btn-sm">
+                                            <i class="bi bi-download"></i> 샘플
+                                        </a>
+                                    </div>
+                                    <form method="post" enctype="multipart/form-data">
+                                        {% csrf_token %}
+                                        {{ form.as_p }}
+                                        <input type="hidden" name="form_type" value="income_{{ income_type }}">
+                                        <button type="submit" class="btn btn-success btn-block">
+                                            <i class="bi bi-cloud-arrow-up-fill"></i> 업로드
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
                         </div>
-                        <form method="post" enctype="multipart/form-data">
-                            {% csrf_token %}
-                            {{ form.as_p }}
-                            <input type="hidden" name="form_type" value="income_{{ income_type }}">
-                            <button type="submit" class="btn btn-success btn-block">
-                                <i class="bi bi-cloud-arrow-up-fill"></i> 업로드
-                            </button>
-                        </form>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                <div class="less-frequent-upload">
+                    <div class="row">
+                        {% for income_type, form in income_forms.items %}
+                            {% if income_type == 'INC_RETENTION' or income_type == 'INC_COMISSION' %}
+                            <div class="col-md-6 mb-2">
+                                <div class="card card-hover less-frequent-card">
+                                    <div class="card-body d-flex justify-content-between align-items-center">
+                                        <span>{{ income_type_translations|get_item:income_type|default:income_type }}</span>
+                                        <form method="post" enctype="multipart/form-data" class="d-flex align-items-center">
+                                            {% csrf_token %}
+                                            {{ form.as_p }}
+                                            <input type="hidden" name="form_type" value="income_{{ income_type }}">
+                                            <button type="submit" class="btn btn-sm btn-outline-secondary ml-2">
+                                                Replace
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        {% endfor %}
                     </div>
                 </div>
-                {% endfor %}
                 <div class="text-center mt-4">
                     <a href="{% url 'initiate_income_process' %}" class="btn btn-outline-primary btn-lg">
                         <i class="bi bi-gear-fill"></i> 수입수수료 프로세스
@@ -58,36 +105,59 @@
         </div>
         
         <!-- Expense Uploads Section -->
-        <div class="col-lg-8">
+        <div class="col-lg-6">
             <div class="upload-section p-4 mb-4">
-                <h4 class="upload-title pb-2 mb-4">
-                    지급수수료 업로드
-                </h4>
+                <h4 class="upload-title pb-2 mb-4">지급수수료 업로드</h4>
                 <div class="row">
                     {% for expense_type, form in expense_forms.items %}
-                    <div class="col-md-6 mb-3">
-                        <div class="card h-100 card-hover">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-center mb-3">
-                                    <h5 class="card-title mb-0">{{ expense_type_translations|get_item:expense_type|default:expense_type }}</h5>
-                                    <a href="{% url 'download_sample' upload_type=expense_type|lower %}" class="btn btn-outline-info btn-sm">
-                                        <i class="bi bi-download"></i> 샘플
-                                    </a>
+                        {% if expense_type != 'EXP_RETENTION' and expense_type != 'EXP_COMISSION' %}
+                        <div class="col-md-4 {% if forloop.counter == 4 or forloop.counter == 5 %}col-md-6{% endif %} mb-3">
+                            <div class="card h-100 card-hover">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h5 class="card-title mb-0">{{ expense_type_translations|get_item:expense_type|default:expense_type }}</h5>
+                                        <a href="{% url 'download_sample' upload_type=expense_type|lower %}" class="btn btn-outline-info btn-sm">
+                                            <i class="bi bi-download"></i> 샘플
+                                        </a>
+                                    </div>
+                                    <form method="post" enctype="multipart/form-data">
+                                        {% csrf_token %}
+                                        {{ form.as_p }}
+                                        <input type="hidden" name="form_type" value="expense_{{ expense_type }}">
+                                        <button type="submit" class="btn btn-success btn-block">
+                                            <i class="bi bi-cloud-arrow-up-fill"></i> 업로드
+                                        </button>
+                                    </form>
                                 </div>
-                                <form method="post" enctype="multipart/form-data">
-                                    {% csrf_token %}
-                                    {{ form.as_p }}
-                                    <input type="hidden" name="form_type" value="expense_{{ expense_type }}">
-                                    <button type="submit" class="btn btn-success btn-block">
-                                        <i class="bi bi-cloud-arrow-up-fill"></i> 업로드
-                                    </button>
-                                </form>
                             </div>
                         </div>
-                    </div>
+                        {% endif %}
                     {% endfor %}
                 </div>
-                <div class="text-center mt-2">
+                <div class="less-frequent-upload">
+                    <div class="row">
+                        {% for expense_type, form in expense_forms.items %}
+                            {% if expense_type == 'EXP_RETENTION' or expense_type == 'EXP_COMISSION' %}
+                            <div class="col-md-6 mb-2">
+                                <div class="card card-hover less-frequent-card">
+                                    <div class="card-body d-flex justify-content-between align-items-center">
+                                        <span>{{ expense_type_translations|get_item:expense_type|default:expense_type }}</span>
+                                        <form method="post" enctype="multipart/form-data" class="d-flex align-items-center">
+                                            {% csrf_token %}
+                                            {{ form.as_p }}
+                                            <input type="hidden" name="form_type" value="expense_{{ expense_type }}">
+                                            <button type="submit" class="btn btn-sm btn-outline-secondary ml-2">
+                                                Replace
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="text-center mt-4">
                     <a href="{% url 'initiate_expense_process' %}" class="btn btn-outline-primary btn-lg">
                         <i class="bi bi-gear-fill"></i> 지급수수료 프로세스
                     </a>
