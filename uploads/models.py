@@ -66,7 +66,8 @@ class ExpenseUpload(models.Model):
         ('EXP_RETIREMENT', 'Retirement'),
         ('EXP_MAIN', 'Main'),
         ('EXP_RETENTION', 'Retention'),
-        ('EXP_COMISSION', 'Comission')
+        ('EXP_COMISSION', 'Comission'),
+        ('EXP_CONTRACTS', 'Contract'),
     ]
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     expense_type = models.CharField(max_length=20, choices=EXPENSE_TYPES)

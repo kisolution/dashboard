@@ -24,6 +24,7 @@ def home_upload_view(request):
         'EXP_SECURITY':'증권번호별',
         'EXP_PREV_MONTH': '전월데이터',
         'EXP_MAIN': '당월데이터',
+        'EXP_CONTRACTS':'계약마감관리',
         'EXP_COMISSION': '수입수수료율',
         'EXP_RETENTION': '보험사유지율',
     }

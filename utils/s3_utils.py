@@ -154,6 +154,7 @@ def get_latest_expense_data(user):
         'prev_month_df': get_cached_file_data('EXP_PREV_MONTH', user),
         'security_df': get_cached_file_data('EXP_SECURITY', user),
         'retirement_df': get_cached_file_data('EXP_RETIREMENT', user),
+        'contract_df': get_cached_file_data('EXP_CONTRACTS', user),
         'commission_df':get_cached_file_data('EXP_COMISSION', user),
         'retention_df':get_cached_file_data('EXP_RETENTION', user)
     }

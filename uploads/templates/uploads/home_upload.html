@@ -40,6 +40,11 @@
         display: flex;
         gap: 0.25rem;
     }
+    .less-frequent-title {
+        font-size: 0.9rem;
+        font-weight: bold;
+        margin-bottom: 0.25rem;
+    }
 </style>
 {% endblock %}
 
@@ -82,9 +87,9 @@
                         {% for income_type, form in income_forms.items %}
                             {% if income_type == 'INC_RETENTION' or income_type == 'INC_COMISSION' %}
                             <div class="col-md-6 mb-2">
+                                <div class="less-frequent-title">{{ income_type_translations|get_item:income_type|default:income_type }}</div>
                                 <div class="card card-hover less-frequent-card">
                                     <div class="card-body d-flex justify-content-between align-items-center">
-                                        <span>{{ income_type_translations|get_item:income_type|default:income_type }}</span>
                                         <div class="d-flex align-items-center">
                                             <a href="{% url 'download_sample' upload_type=income_type|lower %}" class="btn btn-outline-info btn-sm mr-2">
                                                 <i class="bi bi-download"></i>
@@ -120,7 +125,7 @@
                 <div class="row">
                     {% for expense_type, form in expense_forms.items %}
                         {% if expense_type != 'EXP_RETENTION' and expense_type != 'EXP_COMISSION' %}
-                        <div class="col-md-4 {% if forloop.counter == 4 or forloop.counter == 5 %}col-md-6{% endif %} mb-3">
+                        <div class="col-md-4 mb-3">
                             <div class="card h-100 card-hover">
                                 <div class="card-body">
                                     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -148,9 +153,9 @@
                         {% for expense_type, form in expense_forms.items %}
                             {% if expense_type == 'EXP_RETENTION' or expense_type == 'EXP_COMISSION' %}
                             <div class="col-md-6 mb-2">
+                                <div class="less-frequent-title">{{ expense_type_translations|get_item:expense_type|default:expense_type }}</div>
                                 <div class="card card-hover less-frequent-card">
                                     <div class="card-body d-flex justify-content-between align-items-center">
-                                        <span>{{ expense_type_translations|get_item:expense_type|default:expense_type }}</span>
                                         <div class="d-flex align-items-center">
                                             <a href="{% url 'download_sample' upload_type=expense_type|lower %}" class="btn btn-outline-info btn-sm mr-2">
                                                 <i class="bi bi-download"></i>
