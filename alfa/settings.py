@@ -41,6 +41,8 @@ INSTALLED_APPS = [
     'uploads',
     'processes',
     'leasing',
+    'prediction',
+
     'widget_tweaks',
     'django.contrib.humanize'
 ]
