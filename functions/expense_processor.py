@@ -2,7 +2,7 @@ import pandas as pd
 import datetime
 
 class ExpenseProcessor:
-    def __init__(self, static_data, expense_data):
+    def __init__(self,expense_data):
         self.main_df = None
         self.dataframes = {
             **expense_data
@@ -29,7 +29,7 @@ class ExpenseProcessor:
     def add_five_columns(self, df_names):
         def add_columns(df):
             
-            df['이관계약여부'] = df['계약일수정'].apply(lambda x: "이관계약" if x < datetime.date(2023, 7, 1) else ('이관계약' if x == '' else "회사보유계약"))
+            df['이관계약여부'] = df['계약일자수정'].apply(lambda x: "이관계약" if x < datetime.date(2023, 7, 1) else ('이관계약' if x == '' else "회사보유계약"))
             df['보험사1'] = df['보험사'] if '보험사' in df.columns else 'Unknown'
             df['업적월'] = pd.to_datetime(df['계약일']).dt.strftime('%Y%m')
             df['상품군분류'] = 'Not Given'
@@ -62,7 +62,7 @@ class ExpenseProcessor:
         self.main_df.drop('_temp_key', axis=1, inplace=True)
         add_df.drop('_temp_key', axis=1, inplace=True)
 
-    def update_contract_date(base_df, contract_df):
+    def update_contract_date(self, base_df, contract_df):
         base_df['_temp_key'] = base_df['증권번호']
         contract_df['_temp_key'] = contract_df['증권번호']
         contract_date_dict = contract_df.set_index('_temp_key')['계약일자'].to_dict()
@@ -181,6 +181,7 @@ class ExpenseProcessor:
 
         self.main_df['당월정액상각대상수지급액'] = self.main_df[['[지급수수료] 신계약성과(당월)', '[지급수수료] 유지성과(당월)', '[지급수수료] 오버라이드성과(당월)']].sum(axis = 1)
 
+        
         self.main_df['당월누적비용인식액'] = self.main_df.apply(lambda x: x['[지급수수료] 신계약성과(누적)']+x['[지급수수료] 오버라이드성과(누적)']+x['[지급수수료] 유지성과(누적)'] if x['당기해당회차']>x['수익비용인식회차'] else 
                          (x['[지급수수료] 신계약성과(누적)']+x['[지급수수료] 유지성과(누적)']+x['[지급수수료] 오버라이드성과(누적)'])*x['당기해당회차']/x['수익비용인식회차'], axis = 1)
         
@@ -217,7 +218,7 @@ class ExpenseProcessor:
         
         self.main_df['당기환수비용조정']= self.main_df['기말환수자산']-self.main_df['기초환수자산']
         
-        columns_to_modify = [ '당기해당회차', '수익비용인식회차', '환수율적용회차',
+        columns_to_modify = [ '당기해당회차', '수익비용인식회차', 
                '환수율(성과수수료)', '환수율(유지성과수수료)', '유지율','기초선급비용', '당월정액상각대상수지급액', '당월누적비용인식액',
                '전월누적비용인식액', '당월비용인식액', '기타조정액', '기말선급비용', '기초환수자산', '당기환수비용조정',
                '기말환수자산' ]

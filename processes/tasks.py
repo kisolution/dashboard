@@ -59,17 +59,15 @@ def process_expense_task(self, user_id):
         user = User.objects.get(id=user_id)
         logger.info(f"User fetched: {user.username}")
 
-        static_data = get_static_data()
-        logger.info(f"Static data retrieved")
 
         expense_data = get_latest_expense_data(user)
-        logger.info(f"Latest income data fetched")
+        logger.info(f"Latest expense data fetched")
 
         if expense_data is None:
-            logger.error("No income data available")
-            raise ValueError("No income data available")
+            logger.error("No expense data available")
+            raise ValueError("No expense data available")
 
-        process = ExpenseProcessor(static_data, expense_data)
+        process = ExpenseProcessor(expense_data)
         logger.info("Expense initialized")
 
         process.process()
