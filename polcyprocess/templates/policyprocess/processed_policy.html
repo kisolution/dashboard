@@ -62,9 +62,15 @@
             
             {% if report_data %}
             <div class="card mb-4">
-                <div class="card-header bg-light-blue">
+                {% if not selected_company %}
+                <div class="card-header">
                     <h5 class="mb-0">전체</h5>
                 </div>
+                {% else %}
+                <div class="card-header">
+                    <h5 class="mb-0">{{ selected_company }}</h5>
+                </div>
+                {% endif %}
                 <div class="card-body">
                     <h6>&lt;회계처리&gt;</h6>
                     <table class="table table-bordered">

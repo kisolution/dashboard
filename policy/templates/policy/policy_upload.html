@@ -55,7 +55,7 @@
         <!-- Income Uploads Section -->
         <div class="col-lg-6">
             <div class="upload-section p-4 mb-4">
-                <h4 class="upload-title pb-2 mb-4">수입수수료 시책 데이터</h4>
+                <h4 class="upload-title pb-2 mb-4">시책 데이터</h4>
                 <div class="row">
                     {% for income_type, form in income_forms.items %}
                         {% if income_type != 'INC_P_RETENTION' and income_type != 'INC_P_COMISSION' %}
@@ -112,7 +112,7 @@
                 </div>
                 <div class="text-center mt-4">
                     <a href="{% url 'process-policy' %}" class="btn btn-outline-primary btn-lg">
-                        <i class="bi bi-gear-fill"></i> 수입수수료 시책 데이터 프로세스
+                        <i class="bi bi-gear-fill"></i> 시책 데이터 프로세스
                     </a>
                 </div>
             </div>
