@@ -13,7 +13,7 @@ from .tasks import process_income_task, process_expense_task
 def initiate_income_process(request):
     task = process_income_task.delay(request.user.id)
     return render(request, 'processes/processing_started.html', {'process_type': 'income'})
-
+@login_required
 def display_income(request):
     user = request.user
     df = get_cached_file_data('INCOME', user)

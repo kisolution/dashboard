@@ -8,11 +8,12 @@ from functions.others import policy_income_report
 from io import BytesIO
 import pandas as pd
 from django.http import HttpResponse
-
+from django.contrib.auth.decorators import login_required
+@login_required
 def initiate_policy_process(request):
     policy_process_income_task.delay(request.user.id)
     return render(request, 'policyprocess/policy_process_started.html')
-
+@login_required
 def display_policy_income(request):
     user = request.user
     df = get_policy_processed_data(user)

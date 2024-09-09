@@ -7,6 +7,8 @@ from django.http import HttpResponse
 import pandas as pd
 from django.contrib import messages
 from utils.s3_utils import invalidate_cache
+from django.contrib.auth.decorators import login_required
+@login_required
 def policy_upload_view(request):
     income_types = dict(IncomePolicyUpload.INCOME_TYPES)
     #expense_types = dict(ExpenseUpload.EXPENSE_TYPES) 
@@ -49,6 +51,7 @@ def policy_upload_view(request):
         'income_type_translations': income_type_translations,
     }
     return render(request, 'policy/policy_upload.html', context)
+
 def download_policy_sample(request, upload_type):
     upload_type = upload_type.lower()
     sample_name = f"{upload_type}"
