@@ -15,8 +15,8 @@ def home_upload_view(request):
         'INC_LIFE': '생보장기',
         'INC_NON_LIFE':'손보장기',
         'INC_MAIN': '당월데이터',
-        'INC_COMISSION': '수입수수료율',
-        'INC_RETENTION': '보험사유지율',
+        'INC_COMISSION': '환수율',
+        'INC_RETENTION': '유지율'
     }  
     expense_type_translations = {
         'EXP_OVERRIDE': '오버라이드',
@@ -25,8 +25,8 @@ def home_upload_view(request):
         'EXP_PREV_MONTH': '전월데이터',
         'EXP_MAIN': '당월데이터',
         'EXP_CONTRACTS':'계약마감관리',
-        'EXP_COMISSION': '수입수수료율',
-        'EXP_RETENTION': '보험사유지율',
+        'EXP_COMISSION': '환수율',
+        'EXP_RETENTION': '유지율'
     }
     income_forms = {income_type: IncomeUploadForm(prefix=f'income_{income_type}') for income_type in income_types}
     expense_forms = {expense_type: ExpenseUploadForm(prefix=f'expense_{expense_type}') for expense_type in expense_types}
