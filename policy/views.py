@@ -11,10 +11,10 @@ def policy_upload_view(request):
     income_types = dict(IncomePolicyUpload.INCOME_TYPES)
     #expense_types = dict(ExpenseUpload.EXPENSE_TYPES) 
     income_type_translations = {'INC_P_PREV_MONTH':'전월데이터',
-        'INC_P_MAIN':'당월데이터',
         'INC_P_DATA_CASE': '건별데이터',
-        'INC_P_RETENTION': '환수율',
-        'INC_P_COMISSION': '수입수수료율'
+        'INC_P_MAIN':'당월데이터',
+        'INC_P_RETENTION': '유지율',
+        'INC_P_COMISSION': '환수율'
     }
     income_forms = {income_type: IncomePolicyUploadForm(prefix=f'income_{income_type}') for income_type in income_types}
     #expense_forms = {expense_type: ExpenseUploadForm(prefix=f'expense_{expense_type}') for expense_type in expense_types}
