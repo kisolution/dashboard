@@ -29,20 +29,20 @@
     
     <div class="row">
         <!-- Income Uploads Section -->
-        <div class="col-lg-6">
+        <div class="col-lg-4">
             <div class="card mb-4">
                 <div class="card-header bg-primary text-white">
                     <h5 class="mb-0">수입수수료 데이터</h5>
                 </div>
                 <div class="card-body scrollable-card-body">
                     <div class="card-body-content">
-                        {% for data in income_datas|slice:":7" %}
+                        {% for data in income_datas %}
                         <div class="card mb-3 card-hover">
                             <div class="card-body">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <div>
-                                        <h6 class="card-title mb-1">{{ data.filename|truncatechars:60 }}</h6>
-                                        <p class="upload-date mb-0">프로세스 날짜: {{ data.upload_date|date:"F d, Y H:i" }}</p>
+                                        <h6 class="card-title mb-1">{{ data.filename|truncatechars:30 }}</h6>
+                                        <p class="upload-date mb-0">프로세스 날짜: {{ data.upload_date|date:"Y-m-d" }}</p>
                                     </div>
                                     {% if data.s3_key %}
                                     <a href="{% url 'download-history' s3_key=data.s3_key|lower %}" class="btn btn-outline-primary btn-sm">
@@ -52,49 +52,29 @@
                                 </div>
                             </div>
                         </div>
-                        {% endfor %}
-                        {% if income_datas|length > 7 %}
-                            {% for data in income_datas|slice:"7:" %}
-                            <div class="card mb-3 card-hover">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <h6 class="card-title mb-1">{{ data.filename|truncatechars:60 }}</h6>
-                                            <p class="upload-date mb-0">프로세스 날짜: {{ data.upload_date|date:"F d, Y H:i" }}</p>
-                                        </div>
-                                        {% if data.s3_key %}
-                                        <a href="{% url 'download-history' s3_key=data.s3_key|lower %}" class="btn btn-outline-primary btn-sm">
-                                            <i class="bi bi-download"></i> 다운로드
-                                        </a>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            </div>
-                            {% endfor %}
-                        {% endif %}
-                        {% if not income_datas %}
+                        {% empty %}
                         <p class="text-muted">No income uploads available.</p>
-                        {% endif %}
+                        {% endfor %}
                     </div>
                 </div>
             </div>
         </div>
         
         <!-- Expense Uploads Section -->
-        <div class="col-lg-6">
+        <div class="col-lg-4">
             <div class="card mb-4">
                 <div class="card-header bg-success text-white">
                     <h5 class="mb-0">지급수수료 데이터</h5>
                 </div>
                 <div class="card-body scrollable-card-body">
                     <div class="card-body-content">
-                        {% for data in expense_datas|slice:":7" %}
+                        {% for data in expense_datas %}
                         <div class="card mb-3 card-hover">
                             <div class="card-body">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <div>
-                                        <h6 class="card-title mb-1">{{ data.filename|truncatechars:60 }}</h6>
-                                        <p class="upload-date mb-0">프로세스 날짜: {{ data.upload_date|date:"F d, Y H:i" }}</p>
+                                        <h6 class="card-title mb-1">{{ data.filename|truncatechars:30 }}</h6>
+                                        <p class="upload-date mb-0">프로세스 날짜: {{ data.upload_date|date:"Y-m-d" }}</p>
                                     </div>
                                     {% if data.s3_key %}
                                     <a href="{% url 'download-history' s3_key=data.s3_key|lower %}" class="btn btn-outline-success btn-sm">
@@ -104,33 +84,46 @@
                                 </div>
                             </div>
                         </div>
-                        {% endfor %}
-                        {% if expense_datas|length > 7 %}
-                            {% for data in expense_datas|slice:"7:" %}
-                            <div class="card mb-3 card-hover">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <h6 class="card-title mb-1">{{ data.filename|truncatechars:60 }}</h6>
-                                            <p class="upload-date mb-0">프로세스 날짜: {{ data.upload_date|date:"F d, Y H:i" }}</p>
-                                        </div>
-                                        {% if data.s3_key %}
-                                        <a href="{% url 'download-history' s3_key=data.s3_key|lower %}" class="btn btn-outline-success btn-sm">
-                                            <i class="bi bi-download"></i> 다운로드
-                                        </a>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            </div>
-                            {% endfor %}
-                        {% endif %}
-                        {% if not expense_datas %}
+                        {% empty %}
                         <p class="text-muted">No expense uploads available.</p>
-                        {% endif %}
+                        {% endfor %}
                     </div>
                 </div>
             </div>
         </div>
+    
+        <!-- Policy Uploads Section -->
+        <div class="col-lg-4">
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">시책 데이터</h5>
+                </div>
+                <div class="card-body scrollable-card-body">
+                    <div class="card-body-content">
+                        {% for data in policy_datas %}
+                        <div class="card mb-3 card-hover">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="card-title mb-1">{{ data.filename|truncatechars:30 }}</h6>
+                                        <p class="upload-date mb-0">프로세스 날짜: {{ data.upload_date|date:"Y-m-d" }}</p>
+                                    </div>
+                                    {% if data.s3_key %}
+                                    <a href="{% url 'download-history' s3_key=data.s3_key|lower %}" class="btn btn-outline-info btn-sm">
+                                        <i class="bi bi-download"></i> 다운로드
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <p class="text-muted">No policy uploads available.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     </div>
     {% else %}
     <div class="row justify-content-center">

@@ -6,6 +6,8 @@ import boto3
 from storages.backends.s3boto3 import S3Boto3Storage
 from uploads.models import IncomeUpload, ExpenseUpload
 from processes.models import ProcessedData
+from polcyprocess.models import PolicyProcessedData
+from policy.models import IncomePolicyUpload
 from io import BytesIO
 from django.core.cache import cache
 import logging
@@ -111,6 +113,10 @@ def get_cached_file_data(file_type, user):
         file = ExpenseUpload.objects.filter(user=user, expense_type=file_type).order_by('-upload_date').first()
     elif file_type in [choice[0] for choice in ProcessedData.DATA_TYPES]:
         file = ProcessedData.objects.filter(user=user, data_type=file_type).order_by('-upload_date').first()
+    elif file_type in [choice[0] for choice in IncomePolicyUpload.INCOME_TYPES]:
+        file = IncomePolicyUpload.objects.filter(user=user, income_type=file_type).order_by('-upload_date').first()
+    elif file_type in [choice[0] for choice in PolicyProcessedData.DATA_TYPES]:
+        file = PolicyProcessedData.objects.filter(user=user, data_type=file_type).order_by('-upload_date').first()
     else:
         logger.warning(f"Invalid file type: {file_type}")
         return None
@@ -165,6 +171,17 @@ def get_latest_expense_data(user):
     
     return expense_data
 
+def get_latest_income_policy_data(user):
+    income_policy_data = {
+        'inc_p_prev_month': get_cached_file_data('INC_P_PREV_MONTH', user),
+        'inc_p_data_case': get_cached_file_data('INC_P_DATA_CASE', user),
+        'inc_p_main': get_cached_file_data('INC_P_MAIN', user),
+        'inc_p_retention':get_cached_file_data('INC_P_RETENTION', user),
+        'inc_p_commission':get_cached_file_data('INC_P_COMISSION', user),}
+    if any(df is None for df in income_policy_data.values()):
+        logger.error("One or more required files are missing or could not be read")
+        return None    
+    return income_policy_data
 
 def get_income_processed_data(user):
     processed_data = ProcessedData.objects.filter(user=user, data_type='INCOME').order_by('-upload_date').first()
@@ -179,7 +196,12 @@ def get_expense_processed_data(user):
         df = get_cached_file_data('EXPENSE', user)
         return df
     return None
-
+def get_policy_processed_data(user):
+    processed_data = PolicyProcessedData.objects.filter(user=user, data_type='INCOME_POLICY_PRO').order_by('-upload_date').first()
+    if processed_data:
+        df = get_cached_file_data('INCOME_POLICY_PRO', user)
+        return df
+    return None
 
 def upload_to_s3(file_obj, s3_key):
     s3 = boto3.client(
@@ -205,6 +227,29 @@ def save_processed_data(user, df, data_type):
         user=user,
         filename=filename,
         s3_key=f"processed_folder/{filename}",
+        data_type=data_type,
+        upload_date=timestamp
+    )
+    
+    processed_data.file_upload.save(filename, ContentFile(buffer.getvalue()), save=True)
+    print('saved and uploaded as', processed_data.s3_key)
+    # Update cache with new data
+    cache_key = f"{data_type}_{user.id}"
+    cache.set(cache_key, df, 3600)  # Cache for 1 hour
+
+def save_policy_processed_data(user, df, data_type):
+    timestamp = timezone.now()
+    filename = f"processed_{data_type.lower()}_data_{timestamp.strftime('%Y%m%d_%H%M%S')}.xlsx"
+    
+    buffer = BytesIO()
+    with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
+        df.to_excel(writer, index=False, sheet_name=f'Processed Policy {data_type} Data')
+    buffer.seek(0)
+    
+    processed_data = PolicyProcessedData(
+        user=user,
+        filename=filename,
+        s3_key=f"policy_processed_folder/{filename}",
         data_type=data_type,
         upload_date=timestamp
     )

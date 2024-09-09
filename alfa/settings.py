@@ -42,6 +42,8 @@ INSTALLED_APPS = [
     'processes',
     'leasing',
     'prediction',
+    'policy',
+    'polcyprocess',
 
     'widget_tweaks',
     'django.contrib.humanize'

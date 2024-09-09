@@ -107,13 +107,15 @@ def display_expense(request):
     }
     return render(request, 'processes/display_expense.html', context)
 
-
+from polcyprocess.models import PolicyProcessedData
 
 @login_required
 def show_history(request):
     income_datas = ProcessedData.objects.filter(user = request.user, data_type = 'INCOME').order_by('-upload_date')
     expense_datas = ProcessedData.objects.filter(user = request.user, data_type = 'EXPENSE').order_by('-upload_date')
-    context = {'income_datas':income_datas, 'expense_datas':expense_datas}
+    policy_datas = PolicyProcessedData.objects.filter(user = request.user, data_type = 'INCOME_POLICY_PRO').order_by('-upload_date')
+    
+    context = {'income_datas':income_datas, 'expense_datas':expense_datas, 'policy_datas':policy_datas}
     return render(request, 'processes/process_history.html', context)
 
 def download_history(request, s3_key):

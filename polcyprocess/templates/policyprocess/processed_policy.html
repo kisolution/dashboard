@@ -1,0 +1,249 @@
+{% extends "uploads/base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block extra_css %}
+<style>
+    .number-cell {
+        text-align: right;
+        font-weight: bold;
+        color: #007bff;
+    }
+    .report-value {
+        font-weight: bold;
+        color: #007bff;
+    }
+    .table td, .table th {
+        padding: 0.5rem;
+    }
+    .bg-light-blue {
+        background-color: #0070C0;
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+{% if request.user.is_authenticated %}
+<div class="container mt-5">
+    <div class="card mb-4">
+        <div class="card-header bg-secondary text-white">
+            <h2 class="card-title text-center mb-0">시책 수익 및 비용 처리 결과</h2>
+        </div>
+        
+        <div class="card-body">
+            <div class="row mb-3 align-items-center">
+                <div class="col-md-7">
+                    <form method="get" action="{% url 'display-policy' %}" class="form-inline">
+                        <div class="input-group">
+                            <select name="company" class="form-control">
+                                <option value="">모두 보험사</option>
+                                {% for company in company_names %}
+                                    <option value="{{ company }}" {% if company == selected_company %}selected{% endif %}>
+                                        {{ company }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            <div class="input-group-append">
+                                <button type="submit" class="btn btn-outline-success">필터</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="col-md-5 d-flex justify-content-end">
+                    <a href="{% url 'display-policy' %}?company={{ selected_company }}&download=true" class="btn btn-outline-primary mr-2">
+                        <i class="bi bi-file-earmark-excel"></i> 데이터 다운로드
+                    </a>
+                    <a href="#" id="download-report" class="btn btn-outline-info">
+                        <i class="fas fa-file-image mr-1"></i> 보고서 이미지 다운로드
+                    </a>
+                </div>
+            </div>
+            
+            {% if report_data %}
+            <div class="card mb-4">
+                <div class="card-header bg-light-blue">
+                    <h5 class="mb-0">전체</h5>
+                </div>
+                <div class="card-body">
+                    <h6>&lt;회계처리&gt;</h6>
+                    <table class="table table-bordered">
+                        <tr>
+                            <th colspan="2">1. 현금수령액 수익인식 제거, 부채 인식</th>
+                            <th colspan="2"></th>
+                        </tr>
+                        <tr>
+                            <td>(차) 수수료수익(시책비)_IFRS15결산</td>
+                            <td class="number-cell">{{ report_data.c_6|floatformat:0|intcomma }}</td>
+                            <td>(대) 선수수익(시책비)_IFRS15결산</td>
+                            <td class="number-cell">{{ report_data.e_6|floatformat:0|intcomma }}</td>
+                        </tr>
+                        <tr>
+                            <th colspan="2">2. 정액상각 시책 수익 인식</th>
+                            <th colspan="2"></th>
+                        </tr>
+                        <tr>
+                            <td>(차) 선수수익(시책비)_IFRS15결산</td>
+                            <td class="number-cell">{{ report_data.c_9|floatformat:0|intcomma }}</td>
+                            <td>(대) 수수료수익(시책비)_IFRS15결산</td>
+                            <td class="number-cell">{{ report_data.e_9|floatformat:0|intcomma }}</td>
+                        </tr>
+                        <tr>
+                            <th colspan="2">3. 환수부채 인식</th>
+                            <th colspan="2"></th>
+                        </tr>
+                        <tr>
+                            <td>(차) 환수부채수익조정(시책비)_IFRS15결산</td>
+                            <td class="number-cell {% if report_data.c_12 < 0 %}negative{% endif %}">{{ report_data.c_12|floatformat:0|intcomma }}</td>
+                            <td>(대) 환수충당부채(시책)_IFRS15결산</td>
+                            <td class="number-cell {% if report_data.e_12 < 0 %}negative{% endif %}">{{ report_data.e_12|floatformat:0|intcomma }}</td>
+                        </tr>
+                        <tr>
+                            <th colspan="2">4. 선수수익기타조정</th>
+                            <th colspan="2"></th>
+                        </tr>
+                        <tr>
+                            <td>(차) 수수료수익(시책비)_IFRS15결산</td>
+                            <td class="number-cell">{{ report_data.c_15|floatformat:0|intcomma }}</td>
+                            <td>(대) 선수수익(시책비)_IFRS15결산</td>
+                            <td class="number-cell">{{ report_data.e_15|floatformat:0|intcomma }}</td>
+                        </tr>
+                        <tr>
+                            <th colspan="2">5. 현금지급액 비용인식 제거, 자산 인식</th>
+                            <th colspan="2"></th>
+                        </tr>
+                        <tr>
+                            <td>(차) 선급비용(시책비)_IFRS15결산</td>
+                            <td class="number-cell">{{ report_data.c_19|floatformat:0|intcomma }}</td>
+                            <td>(대) 판매수수료(시책비)_IFRS15결산</td>
+                            <td class="number-cell">{{ report_data.e_19|floatformat:0|intcomma }}</td>
+                        </tr>
+                        <tr>
+                            <th colspan="2">6. 정액상각시책 비용 인식</th>
+                            <th colspan="2"></th>
+                        </tr>
+                        <tr>
+                            <td>(차) 판매수수료(시책비)_IFRS15결산</td>
+                            <td class="number-cell">{{ report_data.c_22|floatformat:0|intcomma }}</td>
+                            <td>(대) 선급비용(시책비)_IFRS15결산</td>
+                            <td class="number-cell">{{ report_data.e_22|floatformat:0|intcomma }}</td>
+                        </tr>
+                        <tr>
+                            <th colspan="2">7. 환수자산 인식</th>
+                            <th colspan="2"></th>
+                        </tr>
+                        <tr>
+                            <td>(차) 환수자산(시책비)_IFRS15결산</td>
+                            <td class="number-cell {% if report_data.c_25 < 0 %}negative{% endif %}">{{ report_data.c_25|floatformat:0|intcomma }}</td>
+                            <td>(대) 환수자산비용조정(시책비)_IFRS15결산</td>
+                            <td class="number-cell {% if report_data.e_25 < 0 %}negative{% endif %}">{{ report_data.e_25|floatformat:0|intcomma }}</td>
+                        </tr>
+                        <tr>
+                            <th colspan="2">8. 선급비용기타조정</th>
+                            <th colspan="2"></th>
+                        </tr>
+                        <tr>
+                            <td>(대) 선급비용(시책비)_IFRS15결산</td>
+                            <td class="number-cell">{{ report_data.c_28|floatformat:0|intcomma }}</td>
+                            <td>(차) 판매수수료(시책비)_IFRS15결산</td>
+                            <td class="number-cell">{{ report_data.e_28|floatformat:0|intcomma }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">&lt;검증&gt;</h5>
+                </div>
+                <div class="card-body">
+                    <h6>전월말잔액</h6>
+                    <table class="table table-bordered">
+                        <tr>
+                            <td>선수수익</td>
+                            <td class="number-cell">{{ report_data.c_32|floatformat:0|intcomma }}</td>
+                        </tr>
+                        <tr>
+                            <td>선급비용</td>
+                            <td class="number-cell">{{ report_data.c_33|floatformat:0|intcomma }}</td>
+                        </tr>
+                        <tr>
+                            <td>환수부채</td>
+                            <td class="number-cell">{{ report_data.c_34|floatformat:0|intcomma }}</td>
+                        </tr>
+                        <tr>
+                            <td>환수자산</td>
+                            <td class="number-cell">{{ report_data.c_35|floatformat:0|intcomma }}</td>
+                        </tr>
+                    </table>
+
+                    <h6 class="mt-4">당월말잔액</h6>
+                    <table class="table table-bordered">
+                        <tr>
+                            <th></th>
+                            <th>장부상잔액</th>
+                            <th>계산명세서상잔액</th>
+                            <th>검증</th>
+                        </tr>
+                        <tr>
+                            <td>선수수익</td>
+                            <td class="number-cell">{{ report_data.d_38|floatformat:0|intcomma }}</td>
+                            <td class="number-cell">{{ report_data.c_38|floatformat:0|intcomma }}</td>
+                            <td class="number-cell">{{ report_data.e_38|floatformat:0|intcomma }}</td>
+                        </tr>
+                        <tr>
+                            <td>선급비용</td>
+                            <td class="number-cell">{{ report_data.d_39|floatformat:0|intcomma }}</td>
+                            <td class="number-cell">{{ report_data.c_39|floatformat:0|intcomma }}</td>
+                            <td class="number-cell">{{ report_data.e_39|floatformat:0|intcomma }}</td>
+                        </tr>
+                        <tr>
+                            <td>환수부채</td>
+                            <td class="number-cell">{{ report_data.d_40|floatformat:0|intcomma }}</td>
+                            <td class="number-cell">{{ report_data.c_40|floatformat:0|intcomma }}</td>
+                            <td class="number-cell">{{ report_data.e_40|floatformat:0|intcomma }}</td>
+                        </tr>
+                        <tr>
+                            <td>환수자산</td>
+                            <td class="number-cell">{{ report_data.d_41|floatformat:0|intcomma }}</td>
+                            <td class="number-cell">{{ report_data.c_41|floatformat:0|intcomma }}</td>
+                            <td class="number-cell">{{ report_data.e_41|floatformat:0|intcomma }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            {% else %}
+            <div>No Data to showwwww</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+<script>
+document.getElementById('download-report').addEventListener('click', function(e) {
+    e.preventDefault();
+    html2canvas(document.querySelector('.container')).then(canvas => {
+        let link = document.createElement('a');
+        link.download = 'policy_income_report.png';
+        link.href = canvas.toDataURL();
+        link.click();
+    });
+});
+</script>
+
+{% else %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card mt-5">
+            <div class="card-body text-center">
+                <h4 class="mb-3">Please log in to access the report</h4>
+                <a href="{% url 'login' %}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-sign-in-alt mr-1"></i>Login
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
