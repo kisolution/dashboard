@@ -40,7 +40,7 @@ def display_income_prediction(request):
     df = get_cached_file_data('INCOME_PRE', user)
     if df is None:
         error = 'First you have to start prediction process'
-        return render(request, 'error_template.html', {'error':error})
+        return render(request, 'uploads/error_template.html', {'error':error})
     formatted_df = df.applymap(format_value)
     
     currency_columns = ['성과(당월)','성과(누적)', '당월누적수익인식액','당월수익인식액', '1', '2', '3', '4', '5', '6',
@@ -76,8 +76,10 @@ def display_expense_prediction(request):
        '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17',
        '18', '19', '20', '21', '22', '23', '24', '25', '26', '27', '28', '29',
        '30', '31', '32', '33', '34', '35', '36']  # Replace with your actual currency column names
+    
     for col in currency_columns:
-        formatted_df[col] = formatted_df[col].apply(lambda x: f"₩{x:,.0f}")  # Assuming Korean Won, adjust symbol as needed
+        formatted_df[col] = formatted_df[col].apply(lambda x: f"₩{x:,.0f}") 
+         # Assuming Korean Won, adjust symbol as needed
     
     if request.GET.get('download'):
         output = BytesIO()
