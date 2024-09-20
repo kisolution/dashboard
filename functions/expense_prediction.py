@@ -64,8 +64,8 @@ class PredictExpense:
         return self.main_df    
 
     def process(self):
-        col_to_keep = ['보험사+업적월+채널 key', '마감월', '보험사', '채널', '업적월', '당기해당회차', '수익비용인식회차',
-       '환수율인식회차', '환수율(성과수수료)', '환수율(유지성과수수료)', '유지율', '[지급수수료] 신계약성과(당월)','[지급수수료] 신계약성과(누적)','당월누적비용인식액','당월비용인식액']
+        col_to_keep = ['보험사+업적월+채널 key', '마감월', '보험사', '업적월', '당기해당회차', '수익비용인식회차',
+       '환수율인식회차', '환수율(성과수수료)', '유지율', '[지급수수료] 신계약성과(당월)','[지급수수료] 신계약성과(누적)','당월누적비용인식액','당월비용인식액']
         self.comission_df = self.comission_df.drop_duplicates(subset = '보험사', keep = 'first')
         self.comission_df = self.comission_df.ffill(axis = 1).infer_objects()
         self.retention_df = self.retention_df.ffill(axis = 1).infer_objects()

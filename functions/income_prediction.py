@@ -67,7 +67,7 @@ class PredictIncome:
     def process(self):
         self.comission_df = self.comission_df.ffill(axis = 1).infer_objects()
         self.retention_df = self.retention_df.ffill(axis = 1).infer_objects()
-        self.main_df = self.main_df[['보험사+업적월+상품군 key', '마감월', '보험사', '상품군분류', '업적월', '당기해당회차', '수익비용인식회차',
+        self.main_df = self.main_df[['보험사+업적월+상품군 key', '마감월', '보험사', '업적월', '당기해당회차', '수익비용인식회차',
        '환수율적용회차', '환수율', '유지율', '성과(당월)','성과(누적)', '당월누적수익인식액','당월수익인식액' ]]
         self.main_df = self.prediction()
         self.main_df = self.main_df.drop('tempo', axis = 1)
