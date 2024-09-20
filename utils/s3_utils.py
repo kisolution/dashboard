@@ -7,6 +7,7 @@ from storages.backends.s3boto3 import S3Boto3Storage
 from uploads.models import IncomeUpload, ExpenseUpload
 from processes.models import ProcessedData
 from polcyprocess.models import PolicyProcessedData
+from prediction.models import PredictionData
 from policy.models import IncomePolicyUpload
 from io import BytesIO
 from django.core.cache import cache
@@ -117,6 +118,8 @@ def get_cached_file_data(file_type, user):
         file = IncomePolicyUpload.objects.filter(user=user, income_type=file_type).order_by('-upload_date').first()
     elif file_type in [choice[0] for choice in PolicyProcessedData.DATA_TYPES]:
         file = PolicyProcessedData.objects.filter(user=user, data_type=file_type).order_by('-upload_date').first()
+    elif file_type in [choice[0] for choice in PredictionData.DATA_TYPES]:
+        file = PredictionData.objects.filter(user=user, data_type=file_type).order_by('-upload_date').first()
     else:
         logger.warning(f"Invalid file type: {file_type}")
         return None
@@ -250,6 +253,29 @@ def save_policy_processed_data(user, df, data_type):
         user=user,
         filename=filename,
         s3_key=f"policy_processed_folder/{filename}",
+        data_type=data_type,
+        upload_date=timestamp
+    )
+    
+    processed_data.file_upload.save(filename, ContentFile(buffer.getvalue()), save=True)
+    print('saved and uploaded as', processed_data.s3_key)
+    # Update cache with new data
+    cache_key = f"{data_type}_{user.id}"
+    cache.set(cache_key, df, 3600)  # Cache for 1 hour
+
+def save_predicted_data(user, df, data_type):
+    timestamp = timezone.now()
+    filename = f"predicted_{data_type.lower()}_data_{timestamp.strftime('%Y%m%d_%H%M%S')}.xlsx"
+    
+    buffer = BytesIO()
+    with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
+        df.to_excel(writer, index=False, sheet_name=f'Predicted {data_type} Data')
+    buffer.seek(0)
+    
+    processed_data = PredictionData(
+        user=user,
+        filename=filename,
+        s3_key=f"prediction_folder/{filename}",
         data_type=data_type,
         upload_date=timestamp
     )

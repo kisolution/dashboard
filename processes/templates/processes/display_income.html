@@ -162,7 +162,7 @@
 document.getElementById('download-report').addEventListener('click', function(e) {
     e.preventDefault();
     html2canvas(document.querySelector('.container')).then(canvas => {
-        let link = document.createElement('a');
+        let link = document.createElement('a'); 
         link.download = 'income_report.png';
         link.href = canvas.toDataURL();
         link.click();

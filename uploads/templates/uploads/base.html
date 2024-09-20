@@ -111,6 +111,27 @@
                   <li class="nav-item">
                       <a class="nav-link {% if request.resolver_match.url_name == 'history' %}active{% endif %}" href="{% url 'history' %}">기록 데이터</a>
                   </li>
+                  <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        수입수수료 예측
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item {% if request.resolver_match.url_name == 'display_income_prediction' %}active{% endif %}" href="{% url 'display_income_prediction' %}">예측 결과</a></li>
+                        <li><a class="dropdown-item {% if request.resolver_match.url_name == 'initiate-income-prediction' %}active{% endif %}" href="{% url 'initiate-income-prediction' %}">예측 시작</a></li>
+                    </ul>
+                    
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        지급수입수수료 예측  
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item {% if request.resolver_match.url_name == 'display_expense_prediction' %}active{% endif %}" href="{% url 'display_expense_prediction' %}">예측 결과</a></li>
+                        <li><a class="dropdown-item {% if request.resolver_match.url_name == 'initiate-expense-prediction' %}active{% endif %}" href="{% url 'initiate-expense-prediction' %}">예측 시작</a></li>
+                    </ul>
+                    
+                </li>
+                
               </ul>
               <div class="d-flex">
                   {% if request.user.is_authenticated %}

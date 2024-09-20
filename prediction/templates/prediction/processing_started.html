@@ -1,0 +1,30 @@
+{% extends 'uploads/base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-body text-center">
+                    <h2 class="card-title mb-4">처리 시작됨</h2>
+                    <div class="alert alert-info" role="alert">
+                        <i class="bi bi-info-circle-fill me-2"></i>
+                        데이터가 백그라운드에서 처리되고 있습니다. 완료되면 알려드리겠습니다.
+                    </div>
+                    <div class="mt-4">
+                        {% if process_type == 'income' %}
+                        <a href="{% url 'display_income_prediction' %}" class="btn btn-primary btn-lg">
+                            <i class="bi bi-currency-dollar me-2"></i>계속하기
+                        </a>
+                        {% elif process_type == 'expense' %}
+                        <a href="{% url 'display_expense_prediction' %}" class="btn btn-primary btn-lg">
+                            <i class="bi bi-cash-coin me-2"></i>계속하기
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
