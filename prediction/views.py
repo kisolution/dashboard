@@ -4,6 +4,8 @@ from django.shortcuts import render
 from processes.models import ProcessedData
 from utils.s3_utils import get_cached_file_data
 from functions.income_prediction import PredictIncome
+from .models import PredictionData
+
 import datetime
 import pandas as pd
 from .tasks import predict_income_task, predict_expense_task
@@ -37,7 +39,10 @@ def format_value(value):
 @login_required   
 def display_income_prediction(request):
     user = request.user
+    df_name = PredictionData.objects.filter(user = user, data_type = 'INCOME_PRE').order_by('-upload_date').first()
+    print(df_name)
     df = get_cached_file_data('INCOME_PRE', user)
+    print(df.columns)
     if df is None:
         error = 'First you have to start prediction process'
         return render(request, 'uploads/error_template.html', {'error':error})

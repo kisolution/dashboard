@@ -44,11 +44,12 @@ class PredictIncome:
         return self.main_df.apply(find_value, axis=1)
 
     def prediction(self):
+        self.main_df['difference'] = self.main_df['수익비용인식회차']- self.main_df['당기해당회차']
+        print('difference')
         for i in range(1, 37):
             col = str(i)
             self.main_df['tempo'] = i
-            
-            self.main_df['tempo'] = self.main_df.apply(lambda x: 0 if x['tempo']>x['수익비용인식회차'] else x['tempo'], 
+            self.main_df['tempo'] = self.main_df.apply(lambda x: 0 if x['tempo']>x['difference'] else x['tempo'], 
                      axis = 1)
             if i == 1:
                 self.main_df[col] = self.main_df['당월누적수익인식액']+self.main_df['당월수익인식액']*self.lookup_value(self.comission_df, ['보험사'],['보험사'], 
@@ -61,6 +62,7 @@ class PredictIncome:
                                                                      'tempo', [a for a in range(1,25)], '')*self.lookup_value(self.retention_df, ['보험사'],['회사명'],
                                                                                                                           'tempo', [i for i in range(1,25)], '')
             self.main_df[col] = self.main_df.apply(lambda x: 0 if x['tempo'] == 0 else x[col], axis = 1)
+            self.main_df[col] = self.main_df.apply(lambda x: 0 if x['difference']<i else x[col], axis=1)
         
         return self.main_df    
 
@@ -70,7 +72,7 @@ class PredictIncome:
         self.main_df = self.main_df[['보험사+업적월+상품군 key', '마감월', '보험사', '업적월', '당기해당회차', '수익비용인식회차',
        '환수율적용회차', '환수율', '유지율', '성과(당월)','성과(누적)', '당월누적수익인식액','당월수익인식액' ]]
         self.main_df = self.prediction()
-        self.main_df = self.main_df.drop('tempo', axis = 1)
+        self.main_df = self.main_df.drop(['tempo', 'difference'], axis = 1)
 
     def get_data(self):
         return self.main_df

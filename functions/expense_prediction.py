@@ -44,6 +44,7 @@ class PredictExpense:
         return self.main_df.apply(find_value, axis=1)
 
     def prediction(self):
+        self.main_df['difference'] = self.main_df['수익비용인식회차']- self.main_df['당기해당회차']
         for i in range(1, 37):
             col = str(i)
             self.main_df['tempo'] = i
@@ -61,6 +62,7 @@ class PredictExpense:
                                                                      'tempo', [a for a in range(1,25)], '')*self.lookup_value(self.retention_df, ['보험사'],['회사명'],
                                                                                                                           'tempo', [i for i in range(1,25)], '')
             self.main_df[col] = self.main_df.apply(lambda x: 0 if x['tempo'] == 0 else x[col], axis = 1)
+            self.main_df[col] = self.main_df.apply(lambda x: 0 if x['difference']<i else x[col], axis=1)
         return self.main_df    
 
     def process(self):
@@ -71,7 +73,7 @@ class PredictExpense:
         self.retention_df = self.retention_df.ffill(axis = 1).infer_objects()
         self.main_df = self.main_df[col_to_keep]
         self.main_df = self.prediction()
-        self.main_df = self.main_df.drop('tempo', axis = 1)
+        self.main_df = self.main_df.drop(['tempo', 'difference'], axis = 1)
         
 
     def get_data(self):
